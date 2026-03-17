@@ -1,0 +1,25 @@
+{
+  "name": "IAgendate - Reservá tu turno",
+  "short_name": "IAgendate",
+  "description": "Reservá tu turno online. Elegí especialidad, tratamiento y horario.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#db2777",
+  "orientation": "portrait",
+  "categories": ["beauty", "lifestyle", "business"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

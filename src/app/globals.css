@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* IAgendate - Gradient Mesh Light Theme */
+    /* Rosa / Violeta / Dorado - Femenino, elegante, fresco */
+
+    --background: 0 0% 100%;
+    --foreground: 280 10% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 280 10% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 280 10% 15%;
+
+    --primary: 330 70% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 40% 95%;
+    --secondary-foreground: 270 30% 30%;
+
+    --muted: 270 20% 96%;
+    --muted-foreground: 270 10% 45%;
+
+    --accent: 40 80% 55%;
+    --accent-foreground: 40 80% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 270 20% 90%;
+    --input: 270 20% 90%;
+    --ring: 330 70% 55%;
+
+    --radius: 0.75rem;
+
+    --chart-1: 330 70% 55%;
+    --chart-2: 270 50% 60%;
+    --chart-3: 40 80% 55%;
+    --chart-4: 200 60% 50%;
+    --chart-5: 350 60% 65%;
+
+    /* Gradient Mesh Colors */
+    --mesh-rose: rgba(244, 114, 182, 0.25);
+    --mesh-violet: rgba(167, 139, 250, 0.2);
+    --mesh-gold: rgba(251, 191, 36, 0.15);
+    --mesh-pink: rgba(236, 72, 153, 0.15);
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* Gradient Mesh Background */
+  .mesh-gradient-bg {
+    background:
+      radial-gradient(at 20% 10%, var(--mesh-rose) 0px, transparent 50%),
+      radial-gradient(at 80% 5%, var(--mesh-violet) 0px, transparent 50%),
+      radial-gradient(at 50% 80%, var(--mesh-gold) 0px, transparent 50%),
+      radial-gradient(at 90% 60%, var(--mesh-pink) 0px, transparent 50%);
+    background-color: hsl(var(--background));
+  }
+
+  /* Gradient Mesh Card */
+  .mesh-gradient-card {
+    background:
+      radial-gradient(at 0% 0%, var(--mesh-rose) 0px, transparent 60%),
+      radial-gradient(at 100% 100%, var(--mesh-violet) 0px, transparent 60%);
+    background-color: hsl(var(--card));
+  }
+}
+
+@layer utilities {
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+}
