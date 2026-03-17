@@ -169,6 +169,11 @@ export async function getAvailableSlots(
   const schedStart = parse(schedule.start_time, 'HH:mm:ss', new Date())
   const schedEnd = parse(schedule.end_time, 'HH:mm:ss', new Date())
 
+  // Filter past time slots if booking for today
+  const today = format(new Date(), 'yyyy-MM-dd')
+  const isToday = dateStr === today
+  const nowTime = isToday ? format(new Date(), 'HH:mm') : null
+
   let current = schedStart
   while (isBefore(addMinutes(current, duration), schedEnd) || format(addMinutes(current, duration), 'HH:mm') === format(schedEnd, 'HH:mm')) {
     const slotStart = format(current, 'HH:mm')
@@ -186,9 +191,12 @@ export async function getAvailableSlots(
       return slotStart < bEnd && slotEnd > bStart
     })
 
+    // Block past time slots for today
+    const isPast = isToday && nowTime && slotStart <= nowTime
+
     slots.push({
       time: slotStart,
-      available: !hasConflict && !hasBlock,
+      available: !hasConflict && !hasBlock && !isPast,
     })
 
     current = addMinutes(current, 15)
