@@ -1,10 +1,20 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const webPush = require('web-push')
+const webPushLib = require('web-push')
 
-webPush.setVapidDetails(
-  'mailto:alucero.tech@gmail.com',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-)
+let initialized = false
 
-export { webPush }
+export function webPush() {
+  if (!initialized) {
+    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY
+    if (vapidPublicKey && vapidPrivateKey) {
+      webPushLib.setVapidDetails(
+        'mailto:alucero.tech@gmail.com',
+        vapidPublicKey,
+        vapidPrivateKey
+      )
+      initialized = true
+    }
+  }
+  return webPushLib
+}

@@ -18,7 +18,7 @@ async function sendToSubscriptions(
 
   for (const sub of subscriptions) {
     try {
-      await webPush.sendNotification(
+      await webPush().sendNotification(
         {
           endpoint: sub.endpoint,
           keys: { p256dh: sub.p256dh, auth: sub.auth },
