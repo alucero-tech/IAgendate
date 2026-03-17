@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { Scissors, Clock, CreditCard, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getStoreBranding } from '@/features/settings/services/settings-actions'
+import { InstallBanner } from '@/shared/components/install-banner'
 
 export default async function HomePage() {
   const branding = await getStoreBranding()
@@ -40,11 +41,18 @@ export default async function HomePage() {
         <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
           Elegí tu tratamiento, seleccioná el horario que te quede mejor y confirmá con el pago. Así de fácil.
         </p>
-        <Link href="/reservar">
-          <Button size="lg" className="bg-bella-rose-600 hover:bg-bella-rose-700 text-white px-10 py-6 text-lg rounded-full shadow-lg shadow-bella-rose-200">
-            Reservar turno
-          </Button>
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link href="/reservar">
+            <Button size="lg" className="bg-bella-rose-600 hover:bg-bella-rose-700 text-white px-10 py-6 text-lg rounded-full shadow-lg shadow-bella-rose-200 w-full sm:w-auto">
+              Reservar turno
+            </Button>
+          </Link>
+          <Link href="/mi-turno">
+            <Button size="lg" variant="outline" className="px-8 py-6 text-lg rounded-full w-full sm:w-auto">
+              Consultar mi turno
+            </Button>
+          </Link>
+        </div>
 
         {/* Features */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-20">
@@ -76,6 +84,8 @@ export default async function HomePage() {
         <p>&copy; {new Date().getFullYear()} {branding.name}. Todos los derechos reservados.</p>
         <p className="text-xs mt-1 opacity-60">Potenciado por IAgendate</p>
       </footer>
+
+      <InstallBanner />
     </div>
   )
 }
