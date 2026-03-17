@@ -69,6 +69,13 @@ export function LiquidacionesClient({ settlements: initialSettlements, isOwner, 
   }
 
   function getStatusBadge(settlement: Settlement) {
+    if (settlement.status === 'paid') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+          <Banknote className="h-3 w-3" /> Pagada
+        </span>
+      )
+    }
     if (settlement.status === 'confirmed') {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
@@ -157,7 +164,7 @@ export function LiquidacionesClient({ settlements: initialSettlements, isOwner, 
                   )}
                 </div>
 
-                {settlement.status !== 'confirmed' && (
+                {settlement.status === 'pending' && (
                   <div className="flex items-center justify-between pt-3 border-t border-border/50">
                     <div className="flex gap-2 text-xs">
                       <span className={`flex items-center gap-1 ${settlement.professional_confirmed ? 'text-green-600' : 'text-muted-foreground'}`}>

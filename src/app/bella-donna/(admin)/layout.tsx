@@ -43,7 +43,7 @@ export default async function MainLayout({
         logoUrl={branding.logoUrl || undefined}
       />
       <main className="flex-1 overflow-auto">
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="pt-16 lg:pt-0 px-4 pb-6 lg:p-6 max-w-7xl mx-auto">
           {children}
         </div>
       </main>

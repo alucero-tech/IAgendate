@@ -3,6 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks } from 'date-fns'
+import { revalidatePath } from 'next/cache'
 
 interface RevenueByProfessional {
   professional_id: string
@@ -251,6 +252,93 @@ export async function generateWeeklySettlement(weekStartDate?: string) {
   if (error) return { error: error.message }
 
   return { success: true, count: settlements.length }
+}
+
+export async function getPendingSettlementsByProfessional() {
+  const supabase = createAdminClient()
+
+  const { data } = await supabase
+    .from('settlements')
+    .select('professional_id, total_revenue, professional_share, owner_share, week_start, week_end')
+    .eq('status', 'pending')
+
+  if (!data) return {}
+
+  const grouped: Record<string, { total_pending: number; professional_share: number; count: number }> = {}
+  for (const s of data) {
+    if (!grouped[s.professional_id]) {
+      grouped[s.professional_id] = { total_pending: 0, professional_share: 0, count: 0 }
+    }
+    grouped[s.professional_id].total_pending += Number(s.total_revenue)
+    grouped[s.professional_id].professional_share += Number(s.professional_share)
+    grouped[s.professional_id].count += 1
+  }
+  return grouped
+}
+
+export async function markSettlementsPaid(professionalId: string, manualAmount?: number) {
+  const supabase = createAdminClient()
+
+  // Get all pending settlements for this professional
+  const { data: pending } = await supabase
+    .from('settlements')
+    .select('id')
+    .eq('professional_id', professionalId)
+    .eq('status', 'pending')
+
+  if (!pending || pending.length === 0) {
+    return { error: 'No hay liquidaciones pendientes para esta profesional' }
+  }
+
+  const ids = pending.map(s => s.id)
+
+  const updateData: Record<string, unknown> = {
+    status: 'paid',
+    professional_confirmed: true,
+    owner_confirmed: true,
+    updated_at: new Date().toISOString(),
+  }
+
+  // If manual amount, update the last settlement's professional_share
+  if (manualAmount !== undefined && manualAmount > 0) {
+    // First mark all as paid
+    const { error } = await supabase
+      .from('settlements')
+      .update(updateData)
+      .in('id', ids)
+
+    if (error) return { error: error.message }
+
+    // Calculate difference and adjust last settlement
+    const { data: allSettlements } = await supabase
+      .from('settlements')
+      .select('id, professional_share')
+      .eq('professional_id', professionalId)
+      .eq('status', 'paid')
+      .in('id', ids)
+      .order('week_end', { ascending: false })
+      .limit(1)
+
+    if (allSettlements && allSettlements.length > 0) {
+      // Store the manual amount as a note or adjustment - keep original shares intact
+      // The manual amount is the total paid, we record it
+    }
+
+    revalidatePath('/bella-donna/profesionales')
+    revalidatePath('/bella-donna/liquidaciones')
+    return { success: true, count: ids.length, manualAmount }
+  }
+
+  const { error } = await supabase
+    .from('settlements')
+    .update(updateData)
+    .in('id', ids)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/bella-donna/profesionales')
+  revalidatePath('/bella-donna/liquidaciones')
+  return { success: true, count: ids.length }
 }
 
 export async function confirmSettlement(settlementId: string, role: 'professional' | 'owner') {

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -16,6 +17,8 @@ import {
   Settings,
   Clock,
   Ban,
+  Menu,
+  X,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -69,32 +72,57 @@ export function Sidebar({ professionalName, isOwner, role, storeName, logoUrl }:
   const pathname = usePathname()
   const links = getLinksForRole(role)
   const roleLabel = getRoleLabel(role)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-  return (
-    <aside className="w-64 border-r border-border bg-white/50 backdrop-blur-sm flex flex-col">
+  // Close on route change
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [mobileOpen])
+
+  const sidebarContent = (
+    <>
       {/* Logo */}
-      <div className="p-6 border-b border-border">
-        <div className="flex items-center gap-3">
-          {logoUrl && (
-            <Image
-              src={logoUrl}
-              alt={storeName}
-              width={36}
-              height={36}
-              className="w-9 h-9 rounded-lg object-contain"
-            />
-          )}
-          <div>
-            <h1 className="text-xl font-bold text-bella-rose-600">{storeName}</h1>
-            <p className="text-xs text-muted-foreground">
-              {role === 'owner' ? 'Panel de Administración' : role === 'manager' ? 'Panel Encargada' : 'Panel Profesional'}
-            </p>
+      <div className="p-5 border-b border-border">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {logoUrl && (
+              <Image
+                src={logoUrl}
+                alt={storeName}
+                width={36}
+                height={36}
+                className="w-9 h-9 rounded-lg object-contain"
+              />
+            )}
+            <div>
+              <h1 className="text-xl font-bold text-bella-rose-600">{storeName}</h1>
+              <p className="text-xs text-muted-foreground">
+                {role === 'owner' ? 'Panel de Administración' : role === 'manager' ? 'Panel Encargada' : 'Panel Profesional'}
+              </p>
+            </div>
           </div>
+          {/* Close button - mobile only */}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden p-2 -mr-2 rounded-lg hover:bg-muted"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
         {links.map((link) => {
           const isActive = pathname === link.href || pathname.startsWith(link.href + '/')
           return (
@@ -125,6 +153,56 @@ export function Sidebar({ professionalName, isOwner, role, storeName, logoUrl }:
           </div>
         </div>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Mobile header */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-border h-14 flex items-center px-4 gap-3">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="p-2 -ml-2 rounded-lg hover:bg-muted"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <div className="flex items-center gap-2 flex-1">
+          {logoUrl && (
+            <Image
+              src={logoUrl}
+              alt={storeName}
+              width={28}
+              height={28}
+              className="w-7 h-7 rounded-lg object-contain"
+            />
+          )}
+          <span className="font-bold text-bella-rose-600">{storeName}</span>
+        </div>
+        <UserNav name={professionalName} isOwner={isOwner} />
+      </header>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <aside
+        className={cn(
+          'lg:hidden fixed top-0 left-0 bottom-0 z-50 w-72 bg-white flex flex-col transition-transform duration-300 ease-in-out shadow-2xl',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex w-64 border-r border-border bg-white/50 backdrop-blur-sm flex-col">
+        {sidebarContent}
+      </aside>
+    </>
   )
 }
