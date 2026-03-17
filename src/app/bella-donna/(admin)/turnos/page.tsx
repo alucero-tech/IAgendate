@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getCurrentProfessional } from '@/features/auth/services/auth-actions'
 import { getActiveProfessionals } from '@/features/calendar/services/calendar-actions'
+import { format, subDays } from 'date-fns'
 import { TurnosClient } from './turnos-client'
 
 export default async function TurnosPage() {
@@ -8,6 +9,9 @@ export default async function TurnosPage() {
   if (!professional) return null
 
   const supabase = createAdminClient()
+
+  // Fetch recent bookings: from 7 days ago onwards to capture today + upcoming + recent past
+  const recentCutoff = format(subDays(new Date(), 7), 'yyyy-MM-dd')
 
   let query = supabase
     .from('bookings')
@@ -31,9 +35,11 @@ export default async function TurnosPage() {
         professionals!booking_items_professional_id_fkey (first_name, last_name)
       )
     `)
-    .order('booking_date', { ascending: true })
+    .gte('booking_date', recentCutoff)
+    .in('status', ['confirmed', 'rescheduled', 'pending_payment', 'in_progress', 'completed', 'no_show'])
+    .order('booking_date', { ascending: false })
     .order('start_time', { ascending: true })
-    .limit(100)
+    .limit(200)
 
   const role = (professional.role as string) || (professional.is_owner ? 'owner' : 'professional')
   const hasGlobalAccess = role === 'owner' || role === 'manager'

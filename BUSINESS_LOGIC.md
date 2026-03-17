@@ -105,20 +105,25 @@
 
 ## 7. Especificación Técnica (Para el Agente)
 
-### Features a Implementar (Feature-First)
+### Features Implementadas (Feature-First)
 ```
 src/features/
-├── auth/                # Login para profesionales y dueña (NO para clientas)
-├── booking/             # Sistema de reservas completo (flujo clienta)
-├── calendar/            # Calendario tipo Google Calendar (profesional + global)
-├── treatments/          # Gestión de especialidades y tratamientos
-├── professionals/       # Gestión de profesionales, horarios, asignaciones
-├── payments/            # Integración Mercado Pago + confirmación transferencias
-├── settlements/         # Liquidación semanal con workflow de conformidad
+├── ai-assistant/        # Chat IA advisor, booking assistant, métricas
+├── auth/                # Login profesionales y dueña (WebAuthn + password)
+├── booking/             # Sistema de reservas multi-servicio (flujo clienta + pagos MP)
+├── calendar/            # Calendario día/semana/mes tipo Google Calendar
+├── dashboard/           # Dashboard principal (stats, próximo turno, widgets)
+├── excel/               # Exportación de datos y templates Excel
 ├── metrics/             # Dashboard de métricas y rendimiento
-├── time-blocks/         # Bloqueo de horarios con aprobación
-└── notifications/       # Notificaciones de turnos (confirmación, reagendamiento, etc.)
+├── notifications/       # Push notifications en cambios de estado
+├── portal/              # Portal clienta (/mi-turno, consulta por celular)
+├── professionals/       # Gestión de profesionales, horarios, comisiones
+├── settings/            # Configuración del negocio (solo dueña)
+└── treatments/          # Gestión de categorías y tratamientos
 ```
+
+> Nota: Pagos (Mercado Pago + transferencias), liquidaciones y bloqueos de horarios
+> están integrados dentro de booking/, calendar/ y las rutas admin respectivas.
 
 ### Stack Confirmado
 - **Frontend:** Next.js 16 + React 19 + TypeScript + Tailwind 3.4 + shadcn/ui
@@ -126,7 +131,7 @@ src/features/
 - **Pagos:** Mercado Pago SDK (checkout pro para seña 50%)
 - **Validación:** Zod
 - **State:** Zustand
-- **PWA:** next-pwa (instalable en cualquier dispositivo)
+- **PWA:** Service Worker manual (public/sw.js) + Web Push + manifest.json
 - **MCPs:** Next.js DevTools + Playwright + Supabase
 
 ### Estructura de Rutas (actualizado 2026-03-17)
@@ -142,7 +147,7 @@ src/features/
 
 **Rutas Protegidas (requieren login, bajo `/bella-donna/`):**
 - `/bella-donna/dashboard` — Dashboard principal (stats, próximo turno)
-- `/bella-donna/calendario` — Calendario semanal tipo Google Calendar
+- `/bella-donna/calendario` — Calendario día/semana/mes tipo Google Calendar
 - `/bella-donna/turnos` — Lista de turnos con tabs y acciones
 - `/bella-donna/profesionales` — Gestión de profesionales y comisiones
 - `/bella-donna/tratamientos` — Gestión de categorías y tratamientos
@@ -183,4 +188,7 @@ src/features/
 18. [x] Testing E2E (3 roles: dueña, profesional, clienta)
 19. [x] Reestructuración URLs: rutas admin bajo `/bella-donna/*`
 20. [x] InstallBanner reposicionado (esquina superior derecha, no tapa contenido)
-21. [ ] Deploy Vercel
+21. [x] Deploy Vercel (vinculado, auto-deploy en push a master)
+22. [x] Feature: Vistas calendario día/semana/mes estilo Google Calendar (PRP-007)
+23. [x] Feature: Tarjeta de cliente enriquecida en calendario (PRP-006)
+24. [x] Fix: Bloqueo de horarios pasados en reservas del día actual
