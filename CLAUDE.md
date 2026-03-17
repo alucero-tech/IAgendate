@@ -1,19 +1,14 @@
-# SaaS Factory V4 - Agent-First Software Factory
+# IAgendate - Sistema de Reservas para Bella Donna
 
-> Eres el **cerebro de una fabrica de software inteligente**.
-> El humano dice QUE quiere. Tu decides COMO construirlo.
-> El humano NO necesita saber nada tecnico. Tu sabes todo.
+> **Proyecto:** Sistema de reservas online + PWA para peluquería "Bella Donna"
+> **Stack:** Next.js 16 + React 19 + Supabase + Tailwind/shadcn + Mercado Pago
+> **Estado:** Producción (deploy en Vercel, auto-deploy en push a master)
 
 ---
 
 ## Filosofia: Agent-First
 
 El usuario habla en lenguaje natural. Tu traduces a codigo.
-
-```
-Usuario: "Quiero una app para pedir comida a domicilio"
-Tu: Ejecutas new-app → generas BUSINESS_LOGIC.md → preguntas diseño → implementas
-```
 
 **NUNCA** le digas al usuario que ejecute un comando.
 **NUNCA** le pidas que edite un archivo.
@@ -22,250 +17,243 @@ Tu haces TODO. El solo aprueba.
 
 ---
 
-## Decision Tree: Que Hacer con Cada Request
+## Contexto de Negocio
 
-```
-Usuario dice algo
-    |
-    ├── "Quiero crear una app / negocio / producto"
-    |       → Ejecutar skill NEW-APP (entrevista de negocio → BUSINESS_LOGIC.md)
-    |
-    ├── "Necesito login / registro / autenticacion"
-    |       → Ejecutar skill ADD-LOGIN (Supabase auth completo)
-    |
-    ├── "Necesito una landing page"
-    |       → Ejecutar skill LANDING (entrevista + diseño + codigo)
-    |
-    ├── "Quiero agregar [feature compleja]" (multiples fases, DB + UI + API)
-    |       → Ejecutar skill PRP → humano aprueba → ejecutar BUCLE-AGENTICO
-    |
-    ├── "Necesito [tarea rapida]" (un componente, un fix, algo simple)
-    |       → Ejecutar skill SPRINT (ejecutar directo sin planificacion)
-    |
-    ├── "Quiero agregar IA / chat / vision / RAG"
-    |       → Ejecutar skill AI con el template apropiado
-    |
-    ├── "Revisa que funcione / testea / hay un bug"
-    |       → Ejecutar skill QA (Playwright CLI automatizado)
-    |
-    ├── "Quiero hacer deploy / publicar"
-    |       → Activar agent VERCEL-DEPLOYER
-    |
-    ├── "Explica como funciona [parte del codigo]"
-    |       → Activar agent CODEBASE-ANALYST
-    |
-    ├── "Quiero remover SaaS Factory"
-    |       → Ejecutar skill EJECT-SF (DESTRUCTIVO, confirmar antes)
-    |
-    └── No encaja en nada
-            → Usar tu juicio. Si es frontend → agent FRONTEND.
-              Si es backend → agent BACKEND.
-              Si es DB → agent SUPABASE-ADMIN.
-              Si es docs → agent DOCUMENTACION.
-```
+Peluquería con 6 profesionales. Las clientas reservan sin registrarse (nombre + celular), eligen especialidad → tratamiento → día → horario, pagan 50% de seña (Mercado Pago o transferencia). Cada profesional ve solo su calendario. La dueña administra todo, configura comisiones, aprueba bloqueos y gestiona liquidaciones semanales.
+
+**3 roles:** Clienta (sin login), Profesional (login), Dueña/Admin (login)
+
+Ver `BUSINESS_LOGIC.md` para reglas de negocio completas, flujos y modelo de datos.
 
 ---
 
-## Skills: Tu Caja de Herramientas
+## Stack Técnico
 
-### Que el usuario puede pedir (o tu sugieres)
-
-| Skill | Cuando usarlo |
-|-------|---------------|
-| `new-app` | El usuario quiere empezar un proyecto desde cero. Entrevista de negocio que genera BUSINESS_LOGIC.md |
-| `landing` | El usuario necesita una landing page. Entrevista de estilo + generacion completa |
-| `primer` | Al inicio de cada conversacion para cargar contexto del proyecto |
-| `add-login` | Agregar autenticacion completa (Email/Password + Google OAuth + profiles + RLS) |
-| `eject-sf` | El usuario quiere remover SaaS Factory del proyecto. DESTRUCTIVO. Confirmar siempre |
-| `update-sf` | Actualizar el template a la ultima version |
-| `bucle-agentico` | Features complejas que requieren multiples fases coordinadas (DB + API + UI) |
-| `sprint` | Tareas rapidas: un componente, un fix, algo que no necesita planificacion |
-| `prp` | Generar el plan de una feature compleja antes de implementarla. Siempre antes de `bucle-agentico` |
-| `ai` | Implementar capacidades de IA: chat, RAG, vision, tools, web search |
-| `qa` | Testing automatizado con Playwright CLI. Verificar bugs, testear flujos completos |
-| `skill-creator` | Crear nuevos skills para extender la fabrica |
-
-### Que tu activas automaticamente (el usuario no necesita saber)
-
-| Skill | Se activa cuando... |
-|-------|---------------------|
-| `backend` | Trabajas en Server Actions, APIs, logica de negocio, validaciones Zod |
-| `frontend` | Trabajas en UI/UX, componentes React, Tailwind, animaciones |
-| `supabase-admin` | Necesitas migraciones, RLS, queries SQL, configurar auth |
-| `codebase-analyst` | Necesitas entender patrones y arquitectura del proyecto |
-| `vercel-deployer` | Deploy, env vars, dominios, rollbacks |
-| `documentacion` | Actualizar docs despues de cambios en codigo |
-| `calidad` | Testing, validacion, quality gates |
-
----
-
-## Flujos Principales
-
-### Flujo 1: Proyecto Nuevo (de cero)
-
-```
-1. NEW-APP → Entrevista de negocio → BUSINESS_LOGIC.md
-2. Preguntar diseño visual (design system)
-3. ADD-LOGIN → Auth completo
-4. PRP → Plan de primera feature
-5. BUCLE-AGENTICO → Implementar fase por fase
-6. QA → Verificar que todo funciona
-```
-
-### Flujo 2: Feature Compleja
-
-```
-1. PRP → Generar plan (usuario aprueba)
-2. BUCLE-AGENTICO → Ejecutar por fases:
-   - Delimitar en FASES (sin subtareas)
-   - MAPEAR contexto real de cada fase
-   - EJECUTAR subtareas basadas en contexto REAL
-   - AUTO-BLINDAJE si hay errores
-   - TRANSICIONAR a siguiente fase
-3. QA → Validar resultado final
-```
-
-### Flujo 3: Tarea Rapida
-
-```
-1. SPRINT → Ejecutar directo
-2. MCPs on-demand si necesitas ver algo
-3. Confirmar con usuario
-```
-
-### Flujo 4: Agregar IA
-
-```
-1. AI → Elegir template apropiado:
-   - chat (conversacion streaming)
-   - rag (busqueda semantica)
-   - vision (analisis de imagenes)
-   - tools (funciones/herramientas)
-   - web-search (busqueda en internet)
-   - single-call / structured-outputs / generative-ui
-2. Implementar paso a paso
-```
-
----
-
-## Auto-Blindaje
-
-Cada error refuerza la fabrica. El mismo error NUNCA ocurre dos veces.
-
-```
-Error ocurre → Se arregla → Se DOCUMENTA → NUNCA ocurre de nuevo
-```
-
-| Donde documentar | Cuando |
-|------------------|--------|
-| PRP actual | Errores especificos de esta feature |
-| Skill relevante | Errores que aplican a multiples features |
-| Este archivo (CLAUDE.md) | Errores criticos que aplican a TODO |
-
----
-
-## Golden Path (Un Solo Stack)
-
-No das opciones tecnicas. Ejecutas el stack perfeccionado:
-
-| Capa | Tecnologia |
-|------|------------|
-| Framework | Next.js 16 + React 19 + TypeScript |
-| Estilos | Tailwind CSS 3.4 |
-| Backend | Supabase (Auth + DB + RLS) |
-| AI Engine | Vercel AI SDK v6 + Google Gemini |
-| Validacion | Zod |
-| Estado | Zustand |
+| Capa | Tecnología | Version |
+|------|------------|---------|
+| Framework | Next.js (App Router + Turbopack) | 16.0.0 |
+| UI | React + TypeScript | 19.0.0 / 5.7.0 |
+| Estilos | Tailwind CSS + shadcn/ui (New York, RSC) | 3.4.0 |
+| Backend | Supabase (Auth + PostgreSQL + RLS) | 2.49.0 |
+| Pagos | Mercado Pago SDK | 2.12.0 |
+| AI | Vercel AI SDK v6 + Google Gemini | 6.0.116 |
+| Validación | Zod | 4.3.6 |
+| Estado | Zustand (disponible, server actions como patrón principal) | 5.0.12 |
+| Formularios | React Hook Form + @hookform/resolvers | 7.71.2 |
+| Auth extra | WebAuthn (@simplewebauthn) para login biométrico |
+| Notificaciones | Web Push (web-push) |
+| Excel | xlsx para importación/exportación |
+| PWA | Service Worker manual (public/sw.js) + manifest.json |
 | Testing | Playwright CLI + MCP |
 
 ---
 
 ## Arquitectura Feature-First
 
-Todo el contexto de una feature en un solo lugar:
-
 ```
 src/
-├── app/                      # Next.js App Router
-│   ├── (auth)/              # Rutas de autenticacion
-│   ├── (main)/              # Rutas principales
-│   └── layout.tsx
+├── app/                          # Next.js App Router
+│   ├── (auth)/login/            # Login profesionales
+│   ├── reservar/                # Wizard de reserva (público)
+│   ├── reagendar/               # Reagendamiento (público)
+│   ├── mi-turno/                # Portal clienta (público)
+│   ├── bella-donna/             # Landing negocio (público)
+│   │   └── (admin)/             # Rutas protegidas (requieren login)
+│   │       ├── dashboard/
+│   │       ├── calendario/      # Día/Semana/Mes tipo Google Calendar
+│   │       ├── turnos/
+│   │       ├── profesionales/
+│   │       ├── tratamientos/
+│   │       ├── bloqueos/
+│   │       ├── liquidaciones/
+│   │       ├── metricas/
+│   │       └── configuracion/
+│   ├── api/                     # Route handlers
+│   │   ├── auth/                # Login + WebAuthn
+│   │   ├── chat/                # AI (advisor, booking, metrics)
+│   │   ├── mercadopago/         # Pago + webhook
+│   │   ├── push/                # Push notifications
+│   │   └── excel/               # Template Excel
+│   └── layout.tsx               # Root layout (metadata, SW, toaster)
 │
-├── features/                 # Organizadas por funcionalidad
-│   └── [feature]/
-│       ├── components/      # UI de la feature
-│       ├── hooks/           # Logica
-│       ├── services/        # API calls
-│       ├── types/           # Tipos
-│       └── store/           # Estado
+├── features/                     # 14 features por dominio
+│   ├── ai-assistant/            # Chat IA (tools: booking, metrics, treatments)
+│   ├── auth/                    # Login (WebAuthn + password)
+│   ├── booking/                 # Reservas multi-servicio (modular, 5 services + barrel)
+│   ├── calendar/                # Vistas día/semana/mes
+│   ├── dashboard/               # Dashboard admin
+│   ├── excel/                   # Import/export Excel
+│   ├── metrics/                 # Analytics y rendimiento
+│   ├── notifications/           # Push notifications
+│   ├── portal/                  # Portal clienta (/mi-turno)
+│   ├── professionals/           # Gestión profesionales
+│   ├── settings/                # Configuración negocio
+│   └── treatments/              # Categorías y tratamientos
+│   # Cada feature: components/ + services/ + hooks/ + types/ + store/
 │
-└── shared/                   # Codigo reutilizable
-    ├── components/
-    ├── hooks/
-    ├── lib/
-    └── types/
+├── shared/                       # Código reutilizable
+│   ├── components/              # biometric-setup, contact-buttons, install-banner,
+│   │                            # push-auto-register, role-gate, sidebar
+│   ├── hooks/                   # use-push-subscription
+│   └── types/                   # roles.ts
+│
+├── components/ui/                # 18 componentes shadcn/ui
+│
+├── lib/                          # Configuración de servicios
+│   ├── supabase/                # admin.ts (service role), server.ts, client.ts
+│   ├── ai/google.ts             # Google Gemini client
+│   ├── mercadopago.ts           # MP SDK
+│   ├── web-push.ts              # Push config
+│   └── utils.ts                 # cn() y helpers
+│
+└── hooks/use-toast.ts            # Toast notifications (shadcn)
 ```
 
 ---
 
-## MCPs: Tus Sentidos y Manos
+## Patrones de Código
 
-### Next.js DevTools MCP (Quality Control)
-Conectado via `/_next/mcp`. Ve errores build/runtime en tiempo real.
+### Data Fetching: Server Actions
+Toda la lógica de negocio vive en `features/*/services/*-actions.ts` con `'use server'`.
+NO hay REST APIs para datos (solo webhooks: Mercado Pago, push). Usan `revalidatePath()` para invalidación.
 
-### Playwright (Tus Ojos)
+### Supabase Clients
+- `lib/supabase/admin.ts` — Service role (bypass RLS, solo server-side)
+- `lib/supabase/server.ts` — Con cookies del usuario (respeta RLS)
+- `lib/supabase/client.ts` — Browser client
 
-**CLI** (preferido, menos tokens):
+### Base de Datos
+14 tablas en Supabase, todas con RLS habilitado. Ver `BUSINESS_LOGIC.md` sección 4 para schema completo.
+Tablas principales: `professionals`, `categories`, `treatments`, `professional_treatments`, `bookings`, `booking_items`, `payments`, `clients`, `settlements`, `schedules`, `time_blocks`, `store_settings`, `push_subscriptions`, `webauthn_credentials`.
+
+### Booking: Arquitectura Modular (5 servicios + barrel)
+`booking-actions.ts` es un barrel que re-exporta todo. Los imports externos no cambian.
+- `catalog-actions.ts` — Queries de categorías, tratamientos, profesionales (5 funciones)
+- `availability-actions.ts` — Cálculo de slots y días disponibles (4 funciones)
+- `booking-crud-actions.ts` — Crear, cancelar, reagendar, consultar reservas (7 funciones)
+- `turn-flow-actions.ts` — Llegada, addons, finalización, no-show (9 funciones)
+- `transfer-payment-actions.ts` — Pagos, reembolsos, transferencias entre profesionales (5 funciones)
+- `booking-helpers.ts` — Tipos compartidos (`CartItem`) y utilidades (`calcDepositAmount`)
+
+### Design System: Gradient Mesh (Bella Donna)
+Colores custom en `tailwind.config.ts`:
+- `bella-rose` (rosa, primario)
+- `bella-violet` (violeta, secundario)
+- `bella-gold` (dorado, acento)
+
+---
+
+## Decision Tree: Qué Hacer con Cada Request
+
+```
+Usuario dice algo
+    |
+    ├── Feature compleja (DB + UI + API)
+    |       → PRP → usuario aprueba → BUCLE-AGENTICO
+    |
+    ├── Tarea rápida (1-3 archivos)
+    |       → SPRINT (ejecutar directo)
+    |
+    ├── Agregar IA / chat / visión
+    |       → Skill AI con template apropiado
+    |
+    ├── Testear / revisar bug
+    |       → Skill QA (Playwright CLI)
+    |
+    ├── Deploy / publicar
+    |       → VERCEL-DEPLOYER
+    |
+    ├── Explicar código
+    |       → CODEBASE-ANALYST
+    |
+    └── No encaja → frontend/backend/supabase-admin/documentacion según corresponda
+```
+
+---
+
+## Skills Disponibles
+
+### Invocados por el usuario (o sugeridos)
+
+| Skill | Cuando |
+|-------|--------|
+| `primer` | Inicio de conversación, cargar contexto |
+| `bucle-agentico` | Features complejas multi-fase |
+| `sprint` | Tareas rápidas sin planificación |
+| `prp` | Planificar feature compleja (antes de bucle-agentico) |
+| `ai` | Capacidades IA: chat, RAG, vision, tools |
+| `playwright-cli` | QA automatizado |
+| `landing` | Landing pages |
+| `add-login` | Auth (ya implementado en este proyecto) |
+| `skill-creator` | Crear nuevos skills |
+
+### Activados automáticamente
+
+| Skill | Se activa cuando... |
+|-------|---------------------|
+| `backend` | Server Actions, APIs, validaciones Zod |
+| `frontend` | UI/UX, componentes React, Tailwind |
+| `supabase-admin` | Migraciones, RLS, queries SQL |
+| `codebase-analyst` | Entender patrones y arquitectura |
+| `vercel-deployer` | Deploy, env vars, dominios |
+| `documentacion` | Actualizar docs tras cambios |
+| `calidad` | Testing, validación, quality gates |
+
+---
+
+## MCPs
+
+### Next.js DevTools MCP
+Conectado via `/_next/mcp`. Errores build/runtime en tiempo real.
+
+### Playwright (QA)
+**CLI** (preferido):
 ```bash
 npx playwright navigate http://localhost:3000
 npx playwright screenshot http://localhost:3000 --output screenshot.png
 npx playwright click "text=Sign In"
 npx playwright fill "#email" "test@example.com"
-npx playwright snapshot http://localhost:3000
 ```
+**MCP** para exploración UI.
 
-**MCP** (cuando necesitas explorar UI desconocida):
-```
-playwright_navigate, playwright_screenshot, playwright_click/fill
-```
-
-### Supabase MCP (Tus Manos)
+### Supabase MCP
 ```
 execute_sql, apply_migration, list_tables, get_advisors
 ```
 
 ---
 
-## Reglas de Codigo
+## Reglas de Código
 
-- **KISS**: Soluciones simples
-- **YAGNI**: Solo lo necesario
-- **DRY**: Sin duplicacion
-- Archivos max 500 lineas, funciones max 50 lineas
+- **KISS / YAGNI / DRY**
+- Archivos max 500 líneas, funciones max 50 líneas
 - Variables/Functions: `camelCase`, Components: `PascalCase`, Files: `kebab-case`
 - NUNCA usar `any` (usar `unknown`)
 - SIEMPRE validar entradas de usuario con Zod
 - SIEMPRE habilitar RLS en tablas Supabase
-- NUNCA exponer secrets en codigo
+- NUNCA exponer secrets en código
+- Server Actions como patrón principal de data fetching
+- shadcn/ui para componentes base, extender con los colores Bella Donna
 
 ---
 
 ## Comandos npm
 
 ```bash
-npm run dev          # Servidor (auto-detecta puerto 3000-3006)
-npm run build        # Build produccion
-npm run typecheck    # Verificar tipos
+npm run dev          # Servidor con Turbopack (auto-detecta puerto 3000-3006)
+npm run build        # Build producción
+npm run typecheck    # Verificar tipos (tsc --noEmit)
 npm run lint         # ESLint
+npm run start        # Servidor producción
 ```
 
 ---
 
-## Estructura de la Fabrica
+## Estructura de la Fábrica (.claude/)
 
 ```
 .claude/
-├── skills/                    # Skills 2.0 (V4) - 19 skills
+├── skills/                    # 19 skills
 │   ├── new-app/              # Entrevista de negocio
 │   ├── landing/              # Landing pages
 │   ├── primer/               # Context initialization
@@ -281,22 +269,12 @@ npm run lint         # ESLint
 │   ├── backend/              # Agent: backend
 │   ├── frontend/             # Agent: frontend
 │   ├── supabase-admin/       # Agent: Supabase
-│   ├── codebase-analyst/     # Agent: analisis
+│   ├── codebase-analyst/     # Agent: análisis
 │   ├── vercel-deployer/      # Agent: deploy
 │   ├── documentacion/        # Agent: docs
 │   └── calidad/              # Agent: testing
-│
 ├── PRPs/                      # Product Requirements Proposals
-│   └── prp-base.md           # Template base
-│
-│   │   └── references/       # AI Templates (11 bloques)
-│
-└── design-systems/            # 5 sistemas de diseno
-    ├── neobrutalism/
-    ├── liquid-glass/
-    ├── gradient-mesh/
-    ├── bento-grid/
-    └── neumorphism/
+└── design-systems/            # 5 design systems (activo: gradient-mesh)
 ```
 
 ---
@@ -306,8 +284,12 @@ npm run lint         # ESLint
 ### 2025-01-09: Usar npm run dev, no next dev
 - **Error**: Puerto hardcodeado causa conflictos
 - **Fix**: Siempre usar `npm run dev` (auto-detecta puerto)
-- **Aplicar en**: Todos los proyectos
+
+### 2026-03-17: Queries con limit necesitan orden y filtro adecuados
+- **Error**: Turnos page traía los 100 bookings más viejos (ASC + limit 100), omitiendo los recientes
+- **Fix**: Filtrar por rango de fecha reciente + status relevantes + orden DESC + limit mayor
+- **Aplicar en**: Cualquier query con limit() sobre tablas con muchos registros históricos
 
 ---
 
-*V4: Todo es un Skill. Agent-First. El usuario habla, tu construyes.*
+*IAgendate — Agent-First. El usuario habla, tú construyes.*
