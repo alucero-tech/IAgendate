@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { updateDepositPercentageSchema } from '@/shared/schemas/zod-schemas'
 
 export interface StoreSettings {
   store_name: string
@@ -122,7 +123,8 @@ export async function uploadLogo(formData: FormData) {
 }
 
 export async function updateDepositPercentage(percentage: number) {
-  if (percentage < 10 || percentage > 90) return { error: 'El porcentaje debe estar entre 10% y 90%' }
+  const parsed = updateDepositPercentageSchema.safeParse({ percentage })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
 
   const supabase = await createClient()
   const { data: existing } = await supabase

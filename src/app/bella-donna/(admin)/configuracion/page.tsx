@@ -1,7 +1,7 @@
 import { getCurrentProfessional } from '@/features/auth/services/auth-actions'
 import { getStoreSettings } from '@/features/settings/services/settings-actions'
 import { getDepositPercentage } from '@/features/booking/services/booking-actions'
-import { ConfiguracionClient } from './configuracion-client'
+import { ConfiguracionClient } from '@/features/settings/components/configuracion-client'
 import { redirect } from 'next/navigation'
 
 export default async function ConfiguracionPage() {

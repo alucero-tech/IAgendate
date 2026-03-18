@@ -3,10 +3,14 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { notifyProfessional, notifyOwner, notifyClient } from '@/features/notifications/services/push-service'
+import { bookingIdSchema, uuidSchema, manualRefundSchema, initiateTransferSchema } from '@/shared/schemas/zod-schemas'
 
 // ========== CONFIRMAR PAGO POR TRANSFERENCIA ==========
 
 export async function confirmTransferPayment(bookingId: string) {
+  const v = bookingIdSchema.safeParse(bookingId)
+  if (!v.success) return { error: v.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { error: payError } = await supabase
@@ -54,6 +58,9 @@ export async function confirmTransferPayment(bookingId: string) {
 // ========== DEVOLUCIÓN MANUAL ==========
 
 export async function manualRefund(bookingId: string, refundedByProfId: string) {
+  const parsed = manualRefundSchema.safeParse({ bookingId, refundedByProfId })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { error: payError } = await supabase
@@ -125,6 +132,9 @@ export async function manualRefund(bookingId: string, refundedByProfId: string) 
 // ========== TRANSFERENCIA DE TURNOS ==========
 
 export async function initiateTransfer(bookingItemId: string, targetProfessionalId: string) {
+  const parsed = initiateTransferSchema.safeParse({ bookingItemId, targetProfessionalId })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { data: item } = await supabase
@@ -169,6 +179,9 @@ export async function initiateTransfer(bookingItemId: string, targetProfessional
 }
 
 export async function acceptTransfer(bookingItemId: string) {
+  const v = uuidSchema.safeParse(bookingItemId)
+  if (!v.success) return { error: v.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { error } = await supabase
@@ -185,6 +198,9 @@ export async function acceptTransfer(bookingItemId: string) {
 }
 
 export async function rejectTransfer(bookingItemId: string) {
+  const v = uuidSchema.safeParse(bookingItemId)
+  if (!v.success) return { error: v.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   // Get original professional to restore

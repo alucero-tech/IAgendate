@@ -4,7 +4,7 @@ import {
   getWeekBookings,
   getActiveProfessionals,
 } from '@/features/calendar/services/calendar-actions'
-import { CalendarClient } from './calendar-client'
+import { CalendarClient } from '@/features/calendar/components/calendar-client'
 
 export default async function CalendarioPage() {
   const professional = await getCurrentProfessional()

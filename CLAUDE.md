@@ -94,6 +94,7 @@ src/
 ├── shared/                       # Código reutilizable
 │   ├── components/              # biometric-setup, contact-buttons, install-banner,
 │   │                            # push-auto-register, role-gate, sidebar
+│   ├── schemas/                 # zod-schemas.ts (fuente de verdad para validación)
 │   ├── hooks/                   # use-push-subscription
 │   └── types/                   # roles.ts
 │
@@ -135,6 +136,22 @@ Tablas principales: `professionals`, `categories`, `treatments`, `professional_t
 - `transfer-payment-actions.ts` — Pagos, reembolsos, transferencias entre profesionales (5 funciones)
 - `booking-helpers.ts` — Tipos compartidos (`CartItem`) y utilidades (`calcDepositAmount`)
 
+### Validación: Zod Centralizado
+Todos los schemas de validación viven en `shared/schemas/zod-schemas.ts`. Es la fuente de verdad única.
+- **Primitivos reutilizables:** `uuidSchema`, `bookingIdSchema`, `professionalIdSchema`, `dateSchema`, `timeSchema`, `phoneSchema`
+- **Compuestos:** `dateRangeSchema`, `paginationSchema`
+- **Por dominio:** schemas para booking, turn-flow, transfer, metrics, settings, professionals, time-blocks
+- **API routes:** schemas para login, WebAuthn, MercadoPago, push subscriptions
+- **Patrón:** toda server action y API route usa `safeParse()` en las primeras líneas. Si falla, retorna error descriptivo sin tocar la DB.
+- **Cobertura:** ~85% de funciones con mutación validadas. Funciones sin params y read-only queries no requieren validación.
+- **Al crear nuevas funciones:** importar desde `@/shared/schemas/zod-schemas` y agregar el schema ahí si no existe.
+
+### UI: Feature-First Estricto
+`src/app/` contiene SOLO archivos de Next.js: `page.tsx` (server components), `layout.tsx`, `error.tsx`, `loading.tsx`.
+Toda la lógica de UI client-side vive en `features/*/components/`. Los page.tsx hacen data fetching y pasan props al componente client.
+- **NO** crear componentes `*-client.tsx` dentro de `src/app/`. Van en `features/[dominio]/components/`.
+- Cada ruta crítica tiene `error.tsx` (7 rutas) y las principales tienen `loading.tsx` (3 rutas).
+
 ### Design System: Gradient Mesh (Bella Donna)
 Colores custom en `tailwind.config.ts`:
 - `bella-rose` (rosa, primario)
@@ -156,6 +173,9 @@ Usuario dice algo
     |
     ├── Agregar IA / chat / visión
     |       → Skill AI con template apropiado
+    |
+    ├── Auditar/blindar validaciones
+    |       → Skill SHIELD (escaneo Zod)
     |
     ├── Testear / revisar bug
     |       → Skill QA (Playwright CLI)
@@ -186,6 +206,7 @@ Usuario dice algo
 | `landing` | Landing pages |
 | `add-login` | Auth (ya implementado en este proyecto) |
 | `skill-creator` | Crear nuevos skills |
+| `shield` | Auditar validación Zod en actions y API routes |
 
 ### Activados automáticamente
 
@@ -229,7 +250,7 @@ execute_sql, apply_migration, list_tables, get_advisors
 - Archivos max 500 líneas, funciones max 50 líneas
 - Variables/Functions: `camelCase`, Components: `PascalCase`, Files: `kebab-case`
 - NUNCA usar `any` (usar `unknown`)
-- SIEMPRE validar entradas de usuario con Zod
+- SIEMPRE validar entradas con Zod usando schemas de `shared/schemas/zod-schemas.ts`
 - SIEMPRE habilitar RLS en tablas Supabase
 - NUNCA exponer secrets en código
 - Server Actions como patrón principal de data fetching
@@ -253,7 +274,7 @@ npm run start        # Servidor producción
 
 ```
 .claude/
-├── skills/                    # 19 skills
+├── skills/                    # 20 skills
 │   ├── new-app/              # Entrevista de negocio
 │   ├── landing/              # Landing pages
 │   ├── primer/               # Context initialization
@@ -266,6 +287,7 @@ npm run start        # Servidor producción
 │   ├── ai/                   # AI Templates hub
 │   ├── qa/                   # Playwright CLI QA
 │   ├── skill-creator/        # Crear nuevos skills
+│   ├── shield/               # Auditoría Zod en actions
 │   ├── backend/              # Agent: backend
 │   ├── frontend/             # Agent: frontend
 │   ├── supabase-admin/       # Agent: Supabase
@@ -289,6 +311,17 @@ npm run start        # Servidor producción
 - **Error**: Turnos page traía los 100 bookings más viejos (ASC + limit 100), omitiendo los recientes
 - **Fix**: Filtrar por rango de fecha reciente + status relevantes + orden DESC + limit mayor
 - **Aplicar en**: Cualquier query con limit() sobre tablas con muchos registros históricos
+
+### 2026-03-17: Componentes client fuera de features/
+- **Error**: 8 archivos `*-client.tsx` vivían en `src/app/` junto a los page.tsx
+- **Fix**: Migrados a `features/[dominio]/components/`. Los page.tsx solo importan con `@/features/...`
+- **Regla**: NUNCA crear componentes client en `src/app/`. Van en `features/`.
+
+### 2026-03-17: Validación Zod centralizada
+- **Error**: Solo 14% de server actions validaban inputs. Schemas inline duplicados.
+- **Fix**: `shared/schemas/zod-schemas.ts` como fuente de verdad. Cobertura ~85%.
+- **Patrón**: `const parsed = schema.safeParse(input); if (!parsed.success) return { error: ... }`
+- **Regla**: Toda nueva server action o API route DEBE importar schemas de `zod-schemas.ts`.
 
 ---
 

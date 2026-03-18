@@ -1,6 +1,6 @@
 import { getCurrentProfessional } from '@/features/auth/services/auth-actions'
 import { getSettlements } from '@/features/metrics/services/metrics-actions'
-import { LiquidacionesClient } from './liquidaciones-client'
+import { LiquidacionesClient } from '@/features/metrics/components/liquidaciones-client'
 import { redirect } from 'next/navigation'
 
 export default async function LiquidacionesPage() {

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server'
+import { generateAuthenticationOptions, verifyAuthenticationResponse, type VerifyAuthenticationResponseOpts } from '@simplewebauthn/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createServerClient } from '@supabase/ssr'
+import { webauthnAuthenticateBodySchema } from '@/shared/schemas/zod-schemas'
 
 const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost'
 const ORIGIN = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -10,11 +11,12 @@ const ORIGIN = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 export async function GET() {
   const admin = createAdminClient()
 
-  // Get all registered credentials
+  // Get all registered credentials (exclude temporary challenge records)
   const { data: credentials } = await admin
     .from('webauthn_credentials')
-    .select('credential_id')
+    .select('credential_id, professional_id')
     .not('credential_id', 'like', 'challenge_%')
+    .neq('credential_id', 'auth_challenge')
 
   if (!credentials || credentials.length === 0) {
     return NextResponse.json({ error: 'No credentials registered' }, { status: 404 })
@@ -28,9 +30,9 @@ export async function GET() {
     })),
   })
 
-  // Store challenge
+  // Store challenge using a real professional_id to satisfy FK constraint
   await admin.from('webauthn_credentials').upsert({
-    professional_id: '00000000-0000-0000-0000-000000000000',
+    professional_id: credentials[0].professional_id,
     credential_id: 'auth_challenge',
     public_key: options.challenge,
     counter: 0,
@@ -41,11 +43,11 @@ export async function GET() {
 
 // Step 2: Verify authentication
 export async function POST(req: NextRequest) {
-  const { response: assertion } = await req.json()
-
-  if (!assertion) {
-    return NextResponse.json({ error: 'Missing assertion' }, { status: 400 })
+  const parsed = webauthnAuthenticateBodySchema.safeParse(await req.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
   }
+  const { response: assertion } = parsed.data
 
   const admin = createAdminClient()
 
@@ -74,7 +76,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const verification = await verifyAuthenticationResponse({
-      response: assertion,
+      response: assertion as unknown as VerifyAuthenticationResponseOpts['response'],
       expectedChallenge: challengeRecord.public_key,
       expectedOrigin: ORIGIN,
       expectedRPID: RP_ID,

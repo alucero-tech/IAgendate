@@ -4,6 +4,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks } from 'date-fns'
 import { revalidatePath } from 'next/cache'
+import {
+  revenueMetricsSchema,
+  professionalIdSchema,
+  dateSchema,
+  markSettlementsPaidSchema,
+  confirmSettlementSchema,
+} from '@/shared/schemas/zod-schemas'
 
 interface RevenueByProfessional {
   professional_id: string
@@ -23,6 +30,9 @@ interface RevenueByTreatment {
 }
 
 export async function getRevenueMetrics(period: 'week' | 'month' | 'quarter' | 'year') {
+  const parsed = revenueMetricsSchema.safeParse({ period })
+  if (!parsed.success) return { byProfessional: [], byTreatment: [], totals: { revenue: 0, bookings: 0, ownerShare: 0 } }
+
   const supabase = createAdminClient()
   const now = new Date()
 
@@ -163,6 +173,11 @@ export async function getRevenueMetrics(period: 'week' | 'month' | 'quarter' | '
 // ========== LIQUIDACIONES ==========
 
 export async function getSettlements(professionalId?: string) {
+  if (professionalId) {
+    const v = professionalIdSchema.safeParse(professionalId)
+    if (!v.success) return []
+  }
+
   const supabase = createAdminClient()
 
   let query = supabase
@@ -180,6 +195,11 @@ export async function getSettlements(professionalId?: string) {
 }
 
 export async function generateWeeklySettlement(weekStartDate?: string) {
+  if (weekStartDate) {
+    const v = dateSchema.safeParse(weekStartDate)
+    if (!v.success) return { error: v.error.issues[0].message }
+  }
+
   const supabase = createAdminClient()
 
   const weekStart = weekStartDate
@@ -277,6 +297,9 @@ export async function getPendingSettlementsByProfessional() {
 }
 
 export async function markSettlementsPaid(professionalId: string, manualAmount?: number) {
+  const parsed = markSettlementsPaidSchema.safeParse({ professionalId, manualAmount })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   // Get all pending settlements for this professional
@@ -342,6 +365,9 @@ export async function markSettlementsPaid(professionalId: string, manualAmount?:
 }
 
 export async function confirmSettlement(settlementId: string, role: 'professional' | 'owner') {
+  const parsed = confirmSettlementSchema.safeParse({ settlementId, role })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const updateField = role === 'professional'

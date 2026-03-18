@@ -1,7 +1,7 @@
 import { getProfessionals } from '@/features/professionals/services/professional-actions'
 import { getCurrentProfessional } from '@/features/auth/services/auth-actions'
 import { getPendingSettlementsByProfessional } from '@/features/metrics/services/metrics-actions'
-import { ProfessionalsClient } from './professionals-client'
+import { ProfessionalsClient } from '@/features/professionals/components/professionals-client'
 import { redirect } from 'next/navigation'
 
 export default async function ProfesionalesPage() {

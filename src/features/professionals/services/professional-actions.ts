@@ -4,6 +4,12 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import {
+  updateProfessionalRoleSchema,
+  toggleActiveSchema,
+  toggleScheduleDaySchema,
+  assignTreatmentsSchema,
+} from '@/shared/schemas/zod-schemas'
 
 const professionalSchema = z.object({
   firstName: z.string().min(2, 'Nombre requerido'),
@@ -127,6 +133,9 @@ export async function updateProfessional(id: string, formData: FormData) {
 }
 
 export async function updateProfessionalRole(id: string, role: 'professional' | 'manager') {
+  const parsed = updateProfessionalRoleSchema.safeParse({ id, role })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   // Cannot change owner role
@@ -151,6 +160,9 @@ export async function updateProfessionalRole(id: string, role: 'professional' | 
 }
 
 export async function toggleProfessionalActive(id: string, active: boolean) {
+  const parsed = toggleActiveSchema.safeParse({ id, active })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
   const { error } = await supabase
     .from('professionals')
@@ -202,6 +214,9 @@ export async function upsertSchedule(professionalId: string, formData: FormData)
 }
 
 export async function toggleScheduleDay(professionalId: string, dayOfWeek: number, isActive: boolean) {
+  const parsed = toggleScheduleDaySchema.safeParse({ professionalId, dayOfWeek, isActive })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = await createClient()
   const { error } = await supabase
     .from('schedules')
@@ -216,6 +231,9 @@ export async function toggleScheduleDay(professionalId: string, dayOfWeek: numbe
 }
 
 export async function assignTreatments(professionalId: string, treatmentIds: string[]) {
+  const parsed = assignTreatmentsSchema.safeParse({ professionalId, treatmentIds })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = await createClient()
 
   // Borrar asignaciones actuales

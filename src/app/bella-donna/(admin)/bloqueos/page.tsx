@@ -1,7 +1,7 @@
 import { getCurrentProfessional } from '@/features/auth/services/auth-actions'
 import { getTimeBlockRequests, getMyTimeBlocks } from '@/features/calendar/services/time-block-actions'
 import { getActiveProfessionals } from '@/features/calendar/services/calendar-actions'
-import { BloqueosClient } from './bloqueos-client'
+import { BloqueosClient } from '@/features/calendar/components/bloqueos-client'
 import { redirect } from 'next/navigation'
 
 export default async function BloqueosPage() {

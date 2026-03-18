@@ -5,6 +5,12 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { addMinutes, format, parse } from 'date-fns'
 import { notifyProfessional, notifyOwner, notifyClient } from '@/features/notifications/services/push-service'
+import {
+  cancelBookingSchema,
+  cancelBookingByClientSchema,
+  getBookingsByPhoneSchema,
+  rescheduleBookingSchema,
+} from '@/shared/schemas/zod-schemas'
 import { calcDepositAmount } from './booking-helpers'
 import { getProfessionalsForTreatment } from './catalog-actions'
 import { getAvailableSlots } from './availability-actions'
@@ -261,6 +267,9 @@ export async function createMultiBooking(input: {
 // ========== CANCELAR BOOKING ==========
 
 export async function cancelBooking(bookingId: string, refund: boolean) {
+  const parsed = cancelBookingSchema.safeParse({ bookingId, refund })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { error } = await supabase
@@ -296,9 +305,8 @@ export async function cancelBooking(bookingId: string, refund: boolean) {
 }
 
 export async function cancelBookingByClient(bookingId: string, clientPhone: string) {
-  const phoneSchema = z.string().regex(/^\d{10}$/, 'Celular inválido')
-  const phoneParsed = phoneSchema.safeParse(clientPhone)
-  if (!phoneParsed.success) return { error: 'Número de celular inválido' }
+  const parsed = cancelBookingByClientSchema.safeParse({ bookingId, clientPhone })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
 
   const supabase = createAdminClient()
 
@@ -369,6 +377,9 @@ export async function cancelBookingByClient(bookingId: string, clientPhone: stri
 // ========== CONSULTAR Y REAGENDAR ==========
 
 export async function getBookingsByPhone(phone: string) {
+  const parsed = getBookingsByPhoneSchema.safeParse({ phone })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   // Find client by phone
@@ -430,6 +441,9 @@ export async function getBookingsByPhone(phone: string) {
 }
 
 export async function rescheduleBooking(bookingId: string, newDate: string, newStartTime: string) {
+  const parsed = rescheduleBookingSchema.safeParse({ bookingId, newDate, newStartTime })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   // 0. Validate future date

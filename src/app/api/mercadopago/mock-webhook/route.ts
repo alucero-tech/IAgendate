@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { mpCreatePreferenceSchema } from '@/shared/schemas/zod-schemas'
 
 export async function POST(request: NextRequest) {
   try {
-    const { bookingId } = await request.json()
-
-    if (!bookingId) {
-      return NextResponse.json({ error: 'bookingId requerido' }, { status: 400 })
+    const parsed = mpCreatePreferenceSchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
+    const { bookingId } = parsed.data
 
     const supabase = await createClient()
 

@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { pushSubscriptionSchema } from '@/shared/schemas/zod-schemas'
 
 // Save push subscription
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { subscription, clientPhone, professionalId } = body
-
-    if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
-      return NextResponse.json({ error: 'Invalid subscription' }, { status: 400 })
+    const parsed = pushSubscriptionSchema.safeParse(await req.json())
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
+    const { subscription, clientPhone, professionalId } = parsed.data
 
     const supabase = createAdminClient()
 

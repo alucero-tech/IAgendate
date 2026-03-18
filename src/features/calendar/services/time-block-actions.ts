@@ -3,6 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { uuidSchema } from '@/shared/schemas/zod-schemas'
 
 const timeBlockSchema = z.object({
   professionalId: z.string().uuid(),
@@ -78,6 +79,9 @@ export async function requestTimeBlock(input: {
 }
 
 export async function approveTimeBlock(blockId: string) {
+  const v = uuidSchema.safeParse(blockId)
+  if (!v.success) return { error: v.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { error } = await supabase
@@ -93,6 +97,9 @@ export async function approveTimeBlock(blockId: string) {
 }
 
 export async function rejectTimeBlock(blockId: string) {
+  const v = uuidSchema.safeParse(blockId)
+  if (!v.success) return { error: v.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { error } = await supabase
@@ -107,6 +114,9 @@ export async function rejectTimeBlock(blockId: string) {
 }
 
 export async function deleteTimeBlock(blockId: string) {
+  const v = uuidSchema.safeParse(blockId)
+  if (!v.success) return { error: v.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { error } = await supabase

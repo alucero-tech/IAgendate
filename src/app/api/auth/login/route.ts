@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { loginSchema } from '@/shared/schemas/zod-schemas'
 
 export async function POST(request: NextRequest) {
-  const { identifier, password } = await request.json()
-
-  if (!identifier || !password) {
-    return NextResponse.json({ error: 'Completá todos los campos' }, { status: 400 })
+  const parsed = loginSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
   }
+
+  const { identifier, password } = parsed.data
 
   // Look up professional by name or phone to find their email
   const admin = createAdminClient()

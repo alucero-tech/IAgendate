@@ -4,10 +4,21 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { addMinutes, format, parse } from 'date-fns'
 import { notifyOwner, notifyClient } from '@/features/notifications/services/push-service'
+import {
+  bookingIdSchema,
+  uuidSchema,
+  addOwnAddonSchema,
+  addReferralAddonSchema,
+  acceptReferralAddonSchema,
+  finalizeTurnSchema,
+} from '@/shared/schemas/zod-schemas'
 
 // ========== LLEGADA ==========
 
 export async function confirmArrival(bookingId: string) {
+  const v = bookingIdSchema.safeParse(bookingId)
+  if (!v.success) return { error: v.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { error } = await supabase
@@ -28,6 +39,9 @@ export async function confirmArrival(bookingId: string) {
 // ========== FLUJO DE TURNO: EXTRAS ==========
 
 export async function addOwnAddon(bookingId: string, treatmentId: string, professionalId: string) {
+  const parsed = addOwnAddonSchema.safeParse({ bookingId, treatmentId, professionalId })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   // 1. Get treatment details
@@ -95,6 +109,9 @@ export async function addOwnAddon(bookingId: string, treatmentId: string, profes
 }
 
 export async function addReferralAddon(bookingId: string, referredByProfId: string, targetProfId: string) {
+  const parsed = addReferralAddonSchema.safeParse({ bookingId, referredByProfId, targetProfId })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   // Create a pending addon item — the target professional will load the treatment later
@@ -120,6 +137,9 @@ export async function addReferralAddon(bookingId: string, referredByProfId: stri
 }
 
 export async function acceptReferralAddon(itemId: string, treatmentId: string) {
+  const parsed = acceptReferralAddonSchema.safeParse({ itemId, treatmentId })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   // 1. Get treatment details
@@ -190,6 +210,9 @@ export async function acceptReferralAddon(itemId: string, treatmentId: string) {
 }
 
 export async function rejectReferralAddon(itemId: string) {
+  const v = uuidSchema.safeParse(itemId)
+  if (!v.success) return { error: v.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { data: item } = await supabase
@@ -228,6 +251,9 @@ export async function rejectReferralAddon(itemId: string) {
 // ========== FINALIZAR TURNO ==========
 
 export async function finalizeTurn(bookingId: string, paymentMethod: 'cash' | 'transfer') {
+  const parsed = finalizeTurnSchema.safeParse({ bookingId, paymentMethod })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   // Check no pending addons
@@ -289,6 +315,9 @@ export async function finalizeTurn(bookingId: string, paymentMethod: 'cash' | 't
 }
 
 export async function completeBooking(bookingId: string) {
+  const v = bookingIdSchema.safeParse(bookingId)
+  if (!v.success) return { error: v.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { error } = await supabase
@@ -305,6 +334,9 @@ export async function completeBooking(bookingId: string) {
 // ========== NO-SHOW ==========
 
 export async function markNoShow(bookingId: string) {
+  const v = bookingIdSchema.safeParse(bookingId)
+  if (!v.success) return { error: v.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { data: booking } = await supabase
@@ -340,6 +372,9 @@ export async function markNoShow(bookingId: string) {
 }
 
 export async function revertNoShow(bookingId: string) {
+  const v = bookingIdSchema.safeParse(bookingId)
+  if (!v.success) return { error: v.error.issues[0].message }
+
   const supabase = createAdminClient()
 
   const { data: booking } = await supabase

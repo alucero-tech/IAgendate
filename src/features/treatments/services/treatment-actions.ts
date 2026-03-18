@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { toggleActiveSchema } from '@/shared/schemas/zod-schemas'
 
 const categorySchema = z.object({
   name: z.string().min(2, 'Nombre requerido'),
@@ -109,6 +110,9 @@ export async function updateCategory(id: string, formData: FormData) {
 }
 
 export async function toggleCategoryActive(id: string, active: boolean) {
+  const parsed = toggleActiveSchema.safeParse({ id, active })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = await createClient()
   const { error } = await supabase
     .from('categories')
@@ -187,6 +191,9 @@ export async function updateTreatment(id: string, formData: FormData) {
 }
 
 export async function toggleTreatmentActive(id: string, active: boolean) {
+  const parsed = toggleActiveSchema.safeParse({ id, active })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
   const supabase = await createClient()
   const { error } = await supabase
     .from('treatments')

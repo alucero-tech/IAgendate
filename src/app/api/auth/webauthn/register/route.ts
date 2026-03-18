@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateRegistrationOptions, verifyRegistrationResponse } from '@simplewebauthn/server'
+import { generateRegistrationOptions, verifyRegistrationResponse, type VerifyRegistrationResponseOpts } from '@simplewebauthn/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { webauthnRegisterQuerySchema, webauthnRegisterBodySchema } from '@/shared/schemas/zod-schemas'
 
 const RP_NAME = 'IAgendate'
 const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost'
@@ -8,10 +9,13 @@ const ORIGIN = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
 // Step 1: Generate registration options
 export async function GET(req: NextRequest) {
-  const professionalId = req.nextUrl.searchParams.get('professionalId')
-  if (!professionalId) {
-    return NextResponse.json({ error: 'Missing professionalId' }, { status: 400 })
+  const queryParsed = webauthnRegisterQuerySchema.safeParse({
+    professionalId: req.nextUrl.searchParams.get('professionalId'),
+  })
+  if (!queryParsed.success) {
+    return NextResponse.json({ error: queryParsed.error.issues[0].message }, { status: 400 })
   }
+  const { professionalId } = queryParsed.data
 
   const admin = createAdminClient()
   const { data: prof } = await admin
@@ -58,11 +62,11 @@ export async function GET(req: NextRequest) {
 
 // Step 2: Verify registration
 export async function POST(req: NextRequest) {
-  const { professionalId, response: attestation } = await req.json()
-
-  if (!professionalId || !attestation) {
-    return NextResponse.json({ error: 'Missing data' }, { status: 400 })
+  const parsed = webauthnRegisterBodySchema.safeParse(await req.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
   }
+  const { professionalId, response: attestation } = parsed.data
 
   const admin = createAdminClient()
 
@@ -79,7 +83,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const verification = await verifyRegistrationResponse({
-      response: attestation,
+      response: attestation as unknown as VerifyRegistrationResponseOpts['response'],
       expectedChallenge: challengeRecord.public_key,
       expectedOrigin: ORIGIN,
       expectedRPID: RP_ID,

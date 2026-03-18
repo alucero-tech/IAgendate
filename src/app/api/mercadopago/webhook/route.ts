@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { paymentClient } from '@/lib/mercadopago'
 import { createClient } from '@/lib/supabase/server'
+import { mpWebhookSchema } from '@/shared/schemas/zod-schemas'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const parsed = mpWebhookSchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json({ received: true }) // Accept gracefully — MP retries on non-200
+    }
+
+    const body = parsed.data
 
     // Solo procesar notificaciones de pago
     if (body.type !== 'payment' && body.action !== 'payment.created') {

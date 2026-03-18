@@ -2,7 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getCurrentProfessional } from '@/features/auth/services/auth-actions'
 import { getActiveProfessionals } from '@/features/calendar/services/calendar-actions'
 import { format, subDays } from 'date-fns'
-import { TurnosClient } from './turnos-client'
+import { TurnosClient } from '@/features/booking/components/turnos-client'
 
 export default async function TurnosPage() {
   const professional = await getCurrentProfessional()
