@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks } from 'date-fns'
 import { revalidatePath } from 'next/cache'
+import { getTenantPath, getCurrentTenantSlug } from '@/lib/tenant'
 import {
   revenueMetricsSchema,
   professionalIdSchema,
@@ -347,8 +348,9 @@ export async function markSettlementsPaid(professionalId: string, manualAmount?:
       // The manual amount is the total paid, we record it
     }
 
-    revalidatePath('/bella-donna/profesionales')
-    revalidatePath('/bella-donna/liquidaciones')
+    const slug = await getCurrentTenantSlug()
+    revalidatePath(getTenantPath(slug, '/profesionales'))
+    revalidatePath(getTenantPath(slug, '/liquidaciones'))
     return { success: true, count: ids.length, manualAmount }
   }
 
@@ -359,8 +361,9 @@ export async function markSettlementsPaid(professionalId: string, manualAmount?:
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/profesionales')
-  revalidatePath('/bella-donna/liquidaciones')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/profesionales'))
+  revalidatePath(getTenantPath(slug, '/liquidaciones'))
   return { success: true, count: ids.length }
 }
 

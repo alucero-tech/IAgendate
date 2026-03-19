@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { getTenantPath, getCurrentTenantSlug } from '@/lib/tenant'
 
 interface ProfessionalRow {
   nombre: string
@@ -329,9 +330,10 @@ export async function upsertFromExcel(data: ExcelData): Promise<UpsertResult> {
     }
   }
 
-  revalidatePath('/bella-donna/profesionales')
-  revalidatePath('/bella-donna/tratamientos')
-  revalidatePath('/bella-donna/configuracion')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/profesionales'))
+  revalidatePath(getTenantPath(slug, '/tratamientos'))
+  revalidatePath(getTenantPath(slug, '/configuracion'))
 
   return { success: errors.length === 0, stats, errors }
 }

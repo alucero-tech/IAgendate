@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { getTenantPath, getCurrentTenantSlug } from '@/lib/tenant'
 import { updateDepositPercentageSchema } from '@/shared/schemas/zod-schemas'
 
 export interface StoreSettings {
@@ -116,8 +117,9 @@ export async function uploadLogo(formData: FormData) {
       .insert({ key: 'logo_url', value: logoUrl })
   }
 
-  revalidatePath('/bella-donna/configuracion')
-  revalidatePath('/bella-donna/dashboard')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/configuracion'))
+  revalidatePath(getTenantPath(slug, '/dashboard'))
   revalidatePath('/')
   return { success: true, logoUrl }
 }
@@ -146,7 +148,8 @@ export async function updateDepositPercentage(percentage: number) {
     if (error) return { error: error.message }
   }
 
-  revalidatePath('/bella-donna/configuracion')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/configuracion'))
   revalidatePath('/reservar')
   return { success: true }
 }
@@ -180,6 +183,7 @@ export async function updateStoreSettings(settings: StoreSettings) {
     }
   }
 
-  revalidatePath('/bella-donna/configuracion')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/configuracion'))
   return { success: true }
 }

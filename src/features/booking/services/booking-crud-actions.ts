@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { getTenantPath, getCurrentTenantSlug } from '@/lib/tenant'
 import { z } from 'zod'
 import { addMinutes, format, parse } from 'date-fns'
 import { notifyProfessional, notifyOwner, notifyClient } from '@/features/notifications/services/push-service'
@@ -300,7 +301,8 @@ export async function cancelBooking(bookingId: string, refund: boolean) {
     notifyClient(cancelBk.client_id, { title: 'Turno cancelado', body: refund ? 'Tu turno fue cancelado. Se procesará el reembolso.' : 'Tu turno fue cancelado.' })
   }
 
-  revalidatePath('/bella-donna/turnos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
   return { success: true }
 }
 
@@ -538,7 +540,8 @@ export async function rescheduleBooking(bookingId: string, newDate: string, newS
   }
   notifyOwner({ title: 'Turno reagendado', body: `Un cliente reagendó su turno al ${newDate} a las ${newStartTime}hs.` })
 
-  revalidatePath('/bella-donna/turnos')
-  revalidatePath('/bella-donna/calendario')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
+  revalidatePath(getTenantPath(slug, '/calendario'))
   return { success: true }
 }

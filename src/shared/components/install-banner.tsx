@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Download, X } from 'lucide-react'
+import { Download, X, CheckCircle2 } from 'lucide-react'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
@@ -12,6 +12,8 @@ export function InstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [dismissed, setDismissed] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [installing, setInstalling] = useState(false)
 
   useEffect(() => {
     // Check if already installed
@@ -42,11 +44,16 @@ export function InstallBanner() {
 
   const handleInstall = async () => {
     if (!deferredPrompt) return
+    setInstalling(true)
     await deferredPrompt.prompt()
     const { outcome } = await deferredPrompt.userChoice
     if (outcome === 'accepted') {
-      setIsInstalled(true)
+      setShowSuccess(true)
+      setTimeout(() => {
+        setIsInstalled(true)
+      }, 3000)
     }
+    setInstalling(false)
     setDeferredPrompt(null)
   }
 
@@ -55,7 +62,24 @@ export function InstallBanner() {
     localStorage.setItem('pwa-dismiss', String(Date.now()))
   }
 
-  if (isInstalled || dismissed || !deferredPrompt) return null
+  if (isInstalled || dismissed || (!deferredPrompt && !showSuccess)) return null
+
+  // Success state after install
+  if (showSuccess) {
+    return (
+      <div className="fixed top-4 right-4 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="bg-white rounded-2xl shadow-xl border border-green-200 p-3 flex items-center gap-3">
+          <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+            <CheckCircle2 className="w-5 h-5 text-green-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm text-green-700">App instalada</p>
+            <p className="text-xs text-green-600">Ya podés usarla desde tu pantalla de inicio</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="fixed top-4 right-4 z-50">
@@ -69,9 +93,10 @@ export function InstallBanner() {
         </div>
         <button
           onClick={handleInstall}
-          className="flex-shrink-0 bg-bella-rose-600 text-white text-sm font-medium px-3 py-1.5 rounded-xl hover:bg-bella-rose-700 transition-colors"
+          disabled={installing}
+          className="flex-shrink-0 bg-bella-rose-600 text-white text-sm font-medium px-3 py-1.5 rounded-xl hover:bg-bella-rose-700 transition-colors disabled:opacity-70"
         >
-          Instalar
+          {installing ? 'Instalando...' : 'Instalar'}
         </button>
         <button
           onClick={handleDismiss}

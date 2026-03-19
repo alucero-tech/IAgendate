@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { getTenantPath, getCurrentTenantSlug } from '@/lib/tenant'
 import { addMinutes, format, parse } from 'date-fns'
 import { notifyOwner, notifyClient } from '@/features/notifications/services/push-service'
 import {
@@ -31,8 +32,9 @@ export async function confirmArrival(bookingId: string) {
 
   notifyOwner({ title: 'Cliente llegó', body: 'Se confirmó la llegada de un cliente.' })
 
-  revalidatePath('/bella-donna/turnos')
-  revalidatePath('/bella-donna/calendario')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
+  revalidatePath(getTenantPath(slug, '/calendario'))
   return { success: true }
 }
 
@@ -103,8 +105,9 @@ export async function addOwnAddon(bookingId: string, treatmentId: string, profes
       .eq('id', bookingId)
   }
 
-  revalidatePath('/bella-donna/turnos')
-  revalidatePath('/bella-donna/calendario')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
+  revalidatePath(getTenantPath(slug, '/calendario'))
   return { success: true }
 }
 
@@ -132,7 +135,8 @@ export async function addReferralAddon(bookingId: string, referredByProfId: stri
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/turnos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
   return { success: true }
 }
 
@@ -204,8 +208,9 @@ export async function acceptReferralAddon(itemId: string, treatmentId: string) {
       .eq('id', item.booking_id)
   }
 
-  revalidatePath('/bella-donna/turnos')
-  revalidatePath('/bella-donna/calendario')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
+  revalidatePath(getTenantPath(slug, '/calendario'))
   return { success: true }
 }
 
@@ -244,7 +249,8 @@ export async function rejectReferralAddon(itemId: string) {
     }
   }
 
-  revalidatePath('/bella-donna/turnos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
   return { success: true }
 }
 
@@ -309,8 +315,9 @@ export async function finalizeTurn(bookingId: string, paymentMethod: 'cash' | 't
   // Notify owner about completed turn
   notifyOwner({ title: 'Turno finalizado', body: `Turno completado. Cobro restante: $${finalAmount} (${paymentMethod === 'cash' ? 'efectivo' : 'transferencia'})` })
 
-  revalidatePath('/bella-donna/turnos')
-  revalidatePath('/bella-donna/calendario')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
+  revalidatePath(getTenantPath(slug, '/calendario'))
   return { success: true, finalAmount }
 }
 
@@ -327,7 +334,8 @@ export async function completeBooking(bookingId: string) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/turnos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
   return { success: true }
 }
 
@@ -367,7 +375,8 @@ export async function markNoShow(bookingId: string) {
     }).catch(() => {})
   }
 
-  revalidatePath('/bella-donna/turnos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
   return { success: true }
 }
 
@@ -395,7 +404,8 @@ export async function revertNoShow(bookingId: string) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/turnos')
-  revalidatePath('/bella-donna/calendario')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
+  revalidatePath(getTenantPath(slug, '/calendario'))
   return { success: true }
 }

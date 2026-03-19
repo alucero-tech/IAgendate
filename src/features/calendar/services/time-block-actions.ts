@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { getTenantPath, getCurrentTenantSlug } from '@/lib/tenant'
 import { z } from 'zod'
 import { uuidSchema } from '@/shared/schemas/zod-schemas'
 
@@ -74,7 +75,8 @@ export async function requestTimeBlock(input: {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/bloqueos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/bloqueos'))
   return { success: true }
 }
 
@@ -91,8 +93,9 @@ export async function approveTimeBlock(blockId: string) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/bloqueos')
-  revalidatePath('/bella-donna/calendario')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/bloqueos'))
+  revalidatePath(getTenantPath(slug, '/calendario'))
   return { success: true }
 }
 
@@ -109,7 +112,8 @@ export async function rejectTimeBlock(blockId: string) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/bloqueos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/bloqueos'))
   return { success: true }
 }
 
@@ -126,7 +130,8 @@ export async function deleteTimeBlock(blockId: string) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/bloqueos')
-  revalidatePath('/bella-donna/calendario')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/bloqueos'))
+  revalidatePath(getTenantPath(slug, '/calendario'))
   return { success: true }
 }

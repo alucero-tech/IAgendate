@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { getTenantPath, getCurrentTenantSlug } from '@/lib/tenant'
 import { z } from 'zod'
 import { toggleActiveSchema } from '@/shared/schemas/zod-schemas'
 
@@ -79,7 +80,8 @@ export async function createCategory(formData: FormData) {
     return { error: error.message }
   }
 
-  revalidatePath('/bella-donna/tratamientos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/tratamientos'))
   return { success: true }
 }
 
@@ -105,7 +107,8 @@ export async function updateCategory(id: string, formData: FormData) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/tratamientos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/tratamientos'))
   return { success: true }
 }
 
@@ -121,7 +124,8 @@ export async function toggleCategoryActive(id: string, active: boolean) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/tratamientos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/tratamientos'))
   return { success: true }
 }
 
@@ -152,7 +156,8 @@ export async function createTreatment(formData: FormData) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/tratamientos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/tratamientos'))
   return { success: true }
 }
 
@@ -186,7 +191,8 @@ export async function updateTreatment(id: string, formData: FormData) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/tratamientos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/tratamientos'))
   return { success: true }
 }
 
@@ -202,6 +208,7 @@ export async function toggleTreatmentActive(id: string, active: boolean) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/tratamientos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/tratamientos'))
   return { success: true }
 }

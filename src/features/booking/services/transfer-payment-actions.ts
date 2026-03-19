@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { getTenantPath, getCurrentTenantSlug } from '@/lib/tenant'
 import { notifyProfessional, notifyOwner, notifyClient } from '@/features/notifications/services/push-service'
 import { bookingIdSchema, uuidSchema, manualRefundSchema, initiateTransferSchema } from '@/shared/schemas/zod-schemas'
 
@@ -59,7 +60,8 @@ export async function confirmTransferPayment(bookingId: string) {
     }).catch(() => {})
   }
 
-  revalidatePath('/bella-donna/turnos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
   return { success: true }
 }
 
@@ -133,7 +135,8 @@ export async function manualRefund(bookingId: string, refundedByProfId: string) 
     }).catch(() => {})
   }
 
-  revalidatePath('/bella-donna/turnos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
   return { success: true }
 }
 
@@ -182,7 +185,8 @@ export async function initiateTransfer(bookingItemId: string, targetProfessional
     tag: `transfer-${bookingItemId}`,
   }).catch(() => {})
 
-  revalidatePath('/bella-donna/turnos')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
   return { success: true }
 }
 
@@ -200,8 +204,9 @@ export async function acceptTransfer(bookingItemId: string) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/turnos')
-  revalidatePath('/bella-donna/calendario')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
+  revalidatePath(getTenantPath(slug, '/calendario'))
   return { success: true }
 }
 
@@ -239,7 +244,8 @@ export async function rejectTransfer(bookingItemId: string) {
     tag: `transfer-reject-${bookingItemId}`,
   }).catch(() => {})
 
-  revalidatePath('/bella-donna/turnos')
-  revalidatePath('/bella-donna/calendario')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/turnos'))
+  revalidatePath(getTenantPath(slug, '/calendario'))
   return { success: true }
 }

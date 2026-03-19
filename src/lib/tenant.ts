@@ -16,6 +16,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 
 // ========== PATH RESOLVER ==========
 
@@ -107,8 +108,54 @@ export async function getTenant(slug: string): Promise<{
   }
 }
 
-// ========== CONSTANTE TEMPORARIA (mientras se completa la migración de routing) ==========
-// Durante la transición single-tenant → multi-tenant, las server actions
-// siguen usando el slug de Bella Donna directamente.
-// Se elimina cuando el routing dinámico esté implementado (Fase 3).
+// ========== REVERSE CACHE: tenant_id → slug ==========
+const tenantIdToSlugCache = new Map<string, string>()
+
+/**
+ * Resuelve el slug de un tenant a partir de su UUID.
+ * Usa caché reversa para evitar queries repetidas.
+ */
+export async function getTenantSlugById(tenantId: string): Promise<string> {
+  if (tenantIdToSlugCache.has(tenantId)) {
+    return tenantIdToSlugCache.get(tenantId)!
+  }
+
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from('tenants')
+    .select('slug')
+    .eq('id', tenantId)
+    .single()
+
+  const slug = data?.slug ?? BELLA_DONNA_SLUG
+  tenantIdToSlugCache.set(tenantId, slug)
+  return slug
+}
+
+/**
+ * Resuelve el slug del tenant del profesional autenticado actualmente.
+ * Usa la sesión de Supabase (cookies) para identificar al usuario.
+ * Fallback: 'bella-donna' para mantener backward compatibility durante la transición.
+ */
+export async function getCurrentTenantSlug(): Promise<string> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return BELLA_DONNA_SLUG
+
+    const { data: prof } = await supabase
+      .from('professionals')
+      .select('tenant_id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!prof?.tenant_id) return BELLA_DONNA_SLUG
+    return await getTenantSlugById(prof.tenant_id)
+  } catch {
+    return BELLA_DONNA_SLUG
+  }
+}
+
+// ========== CONSTANTE TEMPORARIA ==========
+// Se elimina cuando todos los server actions reciban slug por parámetro.
 export const BELLA_DONNA_SLUG = 'bella-donna'

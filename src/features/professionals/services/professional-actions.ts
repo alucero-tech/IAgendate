@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { getTenantPath, getCurrentTenantSlug } from '@/lib/tenant'
 import { z } from 'zod'
 import {
   updateProfessionalRoleSchema,
@@ -96,7 +97,8 @@ export async function createProfessional(formData: FormData) {
     return { error: profError.message }
   }
 
-  revalidatePath('/bella-donna/profesionales')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/profesionales'))
   return { success: true, tempPassword }
 }
 
@@ -128,7 +130,8 @@ export async function updateProfessional(id: string, formData: FormData) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/profesionales')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/profesionales'))
   return { success: true }
 }
 
@@ -154,7 +157,8 @@ export async function updateProfessionalRole(id: string, role: 'professional' | 
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/profesionales')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/profesionales'))
   revalidatePath('/')
   return { success: true }
 }
@@ -171,7 +175,8 @@ export async function toggleProfessionalActive(id: string, active: boolean) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/bella-donna/profesionales')
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, '/profesionales'))
   return { success: true }
 }
 
@@ -209,7 +214,8 @@ export async function upsertSchedule(professionalId: string, formData: FormData)
 
   if (error) return { error: error.message }
 
-  revalidatePath(`/bella-donna/profesionales/${professionalId}`)
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, `/profesionales/${professionalId}`))
   return { success: true }
 }
 
@@ -226,7 +232,8 @@ export async function toggleScheduleDay(professionalId: string, dayOfWeek: numbe
 
   if (error) return { error: error.message }
 
-  revalidatePath(`/bella-donna/profesionales/${professionalId}`)
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, `/profesionales/${professionalId}`))
   return { success: true }
 }
 
@@ -256,6 +263,7 @@ export async function assignTreatments(professionalId: string, treatmentIds: str
     if (error) return { error: error.message }
   }
 
-  revalidatePath(`/bella-donna/profesionales/${professionalId}`)
+  const slug = await getCurrentTenantSlug()
+  revalidatePath(getTenantPath(slug, `/profesionales/${professionalId}`))
   return { success: true }
 }
