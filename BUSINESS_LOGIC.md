@@ -1,6 +1,6 @@
 # BUSINESS_LOGIC.md - IAgendate
 
-> Generado por SaaS Factory | Fecha: 2026-03-16
+> Generado por SaaS Factory | Fecha: 2026-03-16 | Actualizado: 2026-03-19 (Multi-Tenant SaaS)
 
 ## 1. Problema de Negocio
 
@@ -42,11 +42,18 @@
 
 ## 3. Usuarios Objetivo
 
+### B2C — Usuarios finales del salón (sin registro en IAgendate)
 | Rol | Descripción | Acceso |
 |-----|-------------|--------|
 | **Clienta** | Persona que quiere reservar un turno. No necesita registrarse. Se identifica por celular | Público (sin login) |
-| **Profesional** | Empleada de la peluquería. Tiene su calendario, ve su recaudación | Login con cuenta |
-| **Dueña (Admin)** | Administradora total. Configura todo, ve métricas globales, aprueba bloqueos, gestiona pagos | Login con cuenta admin |
+| **Profesional** | Empleada del salón. Tiene su calendario, ve su recaudación | Login con cuenta del tenant |
+| **Dueña (Admin Tenant)** | Administradora total del salón. Configura todo, ve métricas globales, aprueba bloqueos | Login con cuenta owner del tenant |
+
+### B2B — Usuarios de la plataforma IAgendate
+| Rol | Descripción | Acceso |
+|-----|-------------|--------|
+| **Owner (Dueño de negocio)** | Compra el plan IAgendate, registra su salón, obtiene su slug | `/registro` |
+| **Superadmin** | Administra la plataforma: tenants, planes, suscripciones | `/superadmin` |
 
 ## 4. Arquitectura de Datos
 
@@ -65,19 +72,23 @@
 - Dashboard de métricas: recaudación por profesional, por tratamiento, semanal/mensual/trimestral/anual
 - Liquidación semanal con workflow de conformidad
 
-**Storage (Supabase tables — 14 tablas, todas con RLS):**
-- `professionals`: id, user_id, first_name, last_name, email, phone, commission_percentage, is_owner, role (professional/manager/owner), active
-- `schedules`: id, professional_id, day_of_week, start_time, end_time
-- `categories`: id, name (unique), description, active, display_order
-- `treatments`: id, category_id (NOT NULL), name, description, ai_context, duration_minutes, price (CHECK > 0), active
-- `professional_treatments`: id, professional_id, treatment_id
-- `time_blocks`: id, professional_id, block_date, start_time, end_time, status (pending/approved/rejected), reason, approved_by
-- `clients`: id, first_name, last_name, phone (unique), email, created_at
-- `bookings`: id, client_id, booking_date, start_time, end_time, status (pending_payment/confirmed/rescheduled/cancelled/in_progress/completed/no_show), reschedule_count, amount_total, amount_paid, final_payment_method, final_amount
+**Storage (Supabase tables — 15 tablas, todas con RLS, multi-tenant por tenant_id):**
+
+> **Regla de aislamiento**: Toda query pública (catalog, availability, booking) debe incluir `.eq('tenant_id', tenantId)`. El `tenantId` se resuelve una vez en `page.tsx` via `getTenantId(slug)` y se propaga como prop explícita. NUNCA se resuelve internamente en server actions públicas.
+
+- `tenants`: id, slug (unique), name, owner_email, plan_expires_at, created_at
+- `professionals`: id, **tenant_id**, user_id, first_name, last_name, email, phone, commission_percentage, is_owner, role (professional/manager/owner), active
+- `schedules`: id, **tenant_id**, professional_id, day_of_week, start_time, end_time
+- `categories`: id, **tenant_id**, name, description, active, display_order
+- `treatments`: id, **tenant_id**, category_id (NOT NULL), name, description, ai_context, duration_minutes, price (CHECK > 0), active
+- `professional_treatments`: id, **tenant_id**, professional_id, treatment_id
+- `time_blocks`: id, **tenant_id**, professional_id, block_date, start_time, end_time, status (pending/approved/rejected), reason, approved_by
+- `clients`: id, **tenant_id**, first_name, last_name, phone, email, created_at
+- `bookings`: id, **tenant_id**, client_id, booking_date, start_time, end_time, status (pending_payment/confirmed/rescheduled/cancelled/in_progress/completed/no_show), reschedule_count, amount_total, amount_paid, final_payment_method, final_amount
 - `booking_items`: id, booking_id, treatment_id, professional_id, start_time, end_time, price, deposit_amount, is_addon, addon_status, referred_by, transfer_status, original_professional_id
 - `payments`: id, booking_id, amount, method (mercadopago/transfer), status (pending/confirmed/refunded), external_reference, confirmed_by, confirmed_at, refund_type, refunded_by
-- `settlements`: id, professional_id, week_start, week_end, total_revenue, professional_share, owner_share, professional_confirmed, owner_confirmed, status (pending/confirmed/paid)
-- `store_settings`: id, key, value (jsonb), updated_at
+- `settlements`: id, **tenant_id**, professional_id, week_start, week_end, total_revenue, professional_share, owner_share, professional_confirmed, owner_confirmed, status (pending/confirmed/paid)
+- `store_settings`: id, **tenant_id**, key, value (jsonb), updated_at
 - `push_subscriptions`: id, endpoint, p256dh, auth, client_id, professional_id, created_at
 - `webauthn_credentials`: id, professional_id, credential_id, public_key, counter, device_name, created_at
 
@@ -134,27 +145,32 @@ src/features/
 - **PWA:** Service Worker manual (public/sw.js) + Web Push + manifest.json
 - **MCPs:** Next.js DevTools + Playwright + Supabase
 
-### Estructura de Rutas (actualizado 2026-03-17)
+### Estructura de Rutas (actualizado 2026-03-19 — Multi-Tenant)
 
-**Rutas Públicas (sin login):**
-- `/` — Home page (hero + CTA)
-- `/bella-donna` — Landing del negocio (tratamientos, precios, info, contacto)
-- `/reservar` — Wizard de reserva de turnos
-- `/reservar/resultado` — Resultado del pago
-- `/mi-turno` — Portal clienta (consultar turno por celular)
-- `/reagendar` — Reagendamiento de turno
-- `/login` — Login profesionales (WebAuthn + contraseña)
+**Rutas de Plataforma IAgendate (sin tenant, branding Dark Tech fijo):**
+- `/` — Landing B2B de IAgendate (hero + pricing $50k/mes + CTA "Activar mi negocio")
+- `/registro` — Onboarding de nuevo negocio (elige slug, paga suscripción MP, crea cuenta)
+- `/login` — Login profesionales/admin (WebAuthn + contraseña)
+- `/superadmin` — Panel superadmin (gestión de tenants, planes, vencimientos)
 
-**Rutas Protegidas (requieren login, bajo `/bella-donna/`):**
-- `/bella-donna/dashboard` — Dashboard principal (stats, próximo turno)
-- `/bella-donna/calendario` — Calendario día/semana/mes tipo Google Calendar
-- `/bella-donna/turnos` — Lista de turnos con tabs y acciones
-- `/bella-donna/profesionales` — Gestión de profesionales y comisiones
-- `/bella-donna/tratamientos` — Gestión de categorías y tratamientos
-- `/bella-donna/bloqueos` — Solicitud/aprobación de licencias
-- `/bella-donna/liquidaciones` — Liquidación semanal con doble conformidad
-- `/bella-donna/metricas` — Métricas de rendimiento (solo dueña)
-- `/bella-donna/configuracion` — Configuración del negocio (solo dueña)
+**Rutas Públicas de Tenant (dinámicas por `[slug]`, branding del negocio):**
+- `/[slug]` — Landing del negocio (tratamientos, precios, info, contacto)
+- `/[slug]/reservar` — Wizard de reserva de turnos
+- `/[slug]/reservar/resultado` — Resultado del pago
+- `/[slug]/mi-turno` — Portal clienta (consultar turno por celular)
+- `/[slug]/reagendar` — Reagendamiento de turno
+> Si el slug no existe → `notFound()` (404 nativo de Next.js)
+
+**Rutas Protegidas del Tenant (requieren login, bajo `/[slug]/admin/`):**
+- `/[slug]/admin/dashboard` — Dashboard principal
+- `/[slug]/admin/calendario` — Calendario día/semana/mes tipo Google Calendar
+- `/[slug]/admin/turnos` — Lista de turnos con tabs y acciones
+- `/[slug]/admin/profesionales` — Gestión de profesionales y comisiones
+- `/[slug]/admin/tratamientos` — Gestión de categorías y tratamientos
+- `/[slug]/admin/bloqueos` — Solicitud/aprobación de licencias
+- `/[slug]/admin/liquidaciones` — Liquidación semanal con doble conformidad
+- `/[slug]/admin/metricas` — Métricas de rendimiento (solo dueña/owner)
+- `/[slug]/admin/configuracion` — Configuración del negocio (solo dueña/owner)
 
 **API Routes:**
 - `/api/auth/login` — Autenticación profesional
@@ -167,7 +183,9 @@ src/features/
 - `/api/push` — Push notifications
 - `/api/excel/template` — Descarga template Excel
 
-### Estado Actual (2026-03-17) — 100% Funcional
+### Estado Actual (2026-03-19) — SaaS Multi-Tenant en Producción
+
+**Fase 1 — MVP Bella Donna (2026-03-17)**
 1. [x] Elegir design system (Gradient Mesh - Bella Rose)
 2. [x] Setup proyecto base + PWA (Service Worker manual, Web Push, WebAuthn)
 3. [x] Configurar Supabase (14 tablas + RLS en todas)
@@ -192,3 +210,17 @@ src/features/
 22. [x] Feature: Vistas calendario día/semana/mes estilo Google Calendar (PRP-007)
 23. [x] Feature: Tarjeta de cliente enriquecida en calendario (PRP-006)
 24. [x] Fix: Bloqueo de horarios pasados en reservas del día actual
+
+**Fase 2 — Multi-Tenant SaaS (2026-03-19) — PRP-008 + PRP-009**
+25. [x] PRP-008: Migración a arquitectura multi-tenant (tabla `tenants`, slugs dinámicos, RLS por tenant_id)
+26. [x] PRP-008: Onboarding B2B (`/registro` con slug único, pago MP de suscripción)
+27. [x] PRP-008: Panel Superadmin (`/superadmin`) — gestión de tenants y planes
+28. [x] PRP-008: Rutas reescritas a `/[slug]/*` — dinámicas por tenant
+29. [x] PRP-008: Branding dinámico por tenant (CSS vars `--brand-primary`, `--brand-accent`)
+30. [x] PRP-009: Aislamiento completo de datos de booking por tenant_id
+31. [x] PRP-009: `BookingWizard`, `RescheduleWizard`, `MyBookingPortal` con tenantId explícito
+32. [x] Landing IAgendate reescrita: genérica "negocios de servicios", plan único $50.000/mes
+33. [x] Fix: `notFound()` en todos los [slug] routes cuando el tenant no existe
+34. [x] Fix: Webhook MP usa `createAdminClient()` — funciona sin sesión de usuario
+35. [x] Fix: `getPublicStoreSettings(tenantId)` — filtra por tenant para visitas anónimas
+36. [x] Smoke test cross-tenant: bella-donna (25 tratamientos) vs test-salon (0) — aislamiento ✓
