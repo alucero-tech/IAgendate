@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { notFound } from 'next/navigation'
 import { Scissors, Clock, MapPin, Phone, Instagram, CreditCard, CalendarCheck, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getPublicStoreSettings, getTenantBranding } from '@/features/settings/services/settings-actions'
@@ -10,10 +11,11 @@ import { InstallBanner } from '@/shared/components/install-banner'
 export default async function SalonPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { getTenantId } = await import('@/lib/tenant')
-  const tenantId = (await getTenantId(slug)) ?? ''
+  const tenantId = await getTenantId(slug)
+  if (!tenantId) notFound()
   const [branding, settings, categories, storePhone, depositPct] = await Promise.all([
     getTenantBranding(slug),
-    getPublicStoreSettings(tenantId),
+    getPublicStoreSettings(tenantId!),
     getAllTreatmentsGrouped(tenantId),
     getStorePhone(tenantId),
     getDepositPercentage(tenantId),

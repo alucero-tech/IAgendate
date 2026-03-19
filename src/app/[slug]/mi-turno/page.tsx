@@ -4,14 +4,12 @@ import { InstallBanner } from '@/shared/components/install-banner'
 import { getStoreName } from '@/features/settings/services/settings-actions'
 import { getStorePhone } from '@/features/booking/services/booking-actions'
 import { getTenantId } from '@/lib/tenant'
+import { notFound } from 'next/navigation'
 
 export default async function MiTurnoPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const tenantId = await getTenantId(slug)
-
-  if (!tenantId) {
-    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Negocio no encontrado</div>
-  }
+  if (!tenantId) notFound()
 
   const [storeName, storePhone] = await Promise.all([
     getStoreName(tenantId),

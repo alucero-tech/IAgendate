@@ -4,6 +4,7 @@ import { CheckCircle2, XCircle, Clock } from 'lucide-react'
 import { InstallBanner } from '@/shared/components/install-banner'
 import { getStoreName } from '@/features/settings/services/settings-actions'
 import { getTenantId } from '@/lib/tenant'
+import { notFound } from 'next/navigation'
 
 export default async function ResultadoPage({
   params: routeParams,
@@ -14,7 +15,8 @@ export default async function ResultadoPage({
 }) {
   const [{ slug }, params] = await Promise.all([routeParams, searchParams])
   const tenantId = await getTenantId(slug)
-  const storeName = await getStoreName(tenantId ?? undefined)
+  if (!tenantId) notFound()
+  const storeName = await getStoreName(tenantId)
   const status = params.status
   const bookingId = params.booking
 

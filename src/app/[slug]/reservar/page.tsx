@@ -5,14 +5,12 @@ import { InstallBanner } from '@/shared/components/install-banner'
 import { ContactButtons } from '@/shared/components/contact-buttons'
 import { ChatWidget } from '@/features/ai-assistant/components/chat-widget'
 import { getTenantId } from '@/lib/tenant'
+import { notFound } from 'next/navigation'
 
 export default async function ReservarPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const tenantId = await getTenantId(slug)
-
-  if (!tenantId) {
-    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Negocio no encontrado</div>
-  }
+  if (!tenantId) notFound()
 
   const [categories, storeName, storePhone, depositPct, transferAlias] = await Promise.all([
     getPublicCategories(tenantId),
