@@ -171,4 +171,4 @@ No requiere tablas nuevas. Todas las features consultan tablas existentes:
 
 ---
 
-*PRP pendiente aprobacion. No se ha modificado codigo.*
+*Implementado y verificado en producción — 2026-03-18.*

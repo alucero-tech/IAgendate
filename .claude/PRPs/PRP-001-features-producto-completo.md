@@ -239,4 +239,4 @@ ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 ---
 
-*PRP pendiente aprobacion. No se ha modificado codigo.*
+*Implementado y verificado en producción — 2026-03-18.*

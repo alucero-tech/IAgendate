@@ -155,4 +155,4 @@ export async function getClientBookingHistory(clientId: string): Promise<ClientH
 
 ---
 
-*PRP pendiente aprobacion. No se ha modificado codigo.*
+*Implementado y verificado en producción — 2026-03-18.*
