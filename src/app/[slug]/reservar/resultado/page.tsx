@@ -5,11 +5,14 @@ import { InstallBanner } from '@/shared/components/install-banner'
 import { getStoreName } from '@/features/settings/services/settings-actions'
 
 export default async function ResultadoPage({
+  params: routeParams,
   searchParams,
 }: {
+  params: Promise<{ slug: string }>
   searchParams: Promise<{ status?: string; booking?: string }>
 }) {
-  const [params, storeName] = await Promise.all([
+  const [{ slug }, params, storeName] = await Promise.all([
+    routeParams,
     searchParams,
     getStoreName(),
   ])
@@ -66,12 +69,12 @@ export default async function ResultadoPage({
         )}
 
         <div className="flex flex-col gap-3 pt-4">
-          <Link href="/reservar">
+          <Link href={`/${slug}/reservar`}>
             <Button className="w-full bg-bella-rose-600 hover:bg-bella-rose-700">
               Reservar otro turno
             </Button>
           </Link>
-          <Link href="/">
+          <Link href={`/${slug}`}>
             <Button variant="outline" className="w-full">
               Volver al inicio
             </Button>

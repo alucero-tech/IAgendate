@@ -1,7 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "mcp__supabase__execute_sql"
+      "mcp__supabase__execute_sql",
+      "Bash(npm --version)",
+      "Bash(git --version)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Skill(primer)",
+      "Bash(wc -l /c/Proyectos/IAgendate/src/**/*.tsx /c/Proyectos/IAgendate/src/**/*.ts)",
+      "Bash(grep -v \"^\\\\.template$\")",
+      "Bash(wc:*)",
+      "Bash(done)",
+      "Bash(while read:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Proyectos/IAgendate/**)",
+      "Bash(ls src/app/bella-donna/\\\\\\(admin\\\\\\)/)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

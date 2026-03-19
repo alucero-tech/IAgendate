@@ -10,9 +10,12 @@ import { BiometricSetup } from '@/shared/components/biometric-setup'
 
 export default async function MainLayout({
   children,
+  params,
 }: {
   children: React.ReactNode
+  params: Promise<{ slug: string }>
 }) {
+  const { slug } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -41,6 +44,7 @@ export default async function MainLayout({
         role={(professional.role as 'professional' | 'manager' | 'owner') || (professional.is_owner ? 'owner' : 'professional')}
         storeName={branding.name}
         logoUrl={branding.logoUrl || undefined}
+        slug={slug}
       />
       <main className="flex-1 overflow-auto">
         <div className="pt-16 lg:pt-0 px-4 pb-6 lg:p-6 max-w-7xl mx-auto">

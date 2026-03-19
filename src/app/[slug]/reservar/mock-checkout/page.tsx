@@ -9,6 +9,7 @@ function MockCheckoutContent() {
   const amount = searchParams.get('amount') || '0'
   const treatment = searchParams.get('treatment') || 'Tratamiento'
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+  const slug = typeof window !== 'undefined' ? window.location.pathname.split('/')[1] : 'bella-donna'
 
   function handlePayment(status: 'success' | 'failure' | 'pending') {
     // Simulate webhook call to confirm payment
@@ -18,10 +19,10 @@ function MockCheckoutContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookingId }),
       }).then(() => {
-        window.location.href = `${baseUrl}/reservar/resultado?status=success&booking=${bookingId}`
+        window.location.href = `${baseUrl}/${slug}/reservar/resultado?status=success&booking=${bookingId}`
       })
     } else {
-      window.location.href = `${baseUrl}/reservar/resultado?status=${status}&booking=${bookingId}`
+      window.location.href = `${baseUrl}/${slug}/reservar/resultado?status=${status}&booking=${bookingId}`
     }
   }
 

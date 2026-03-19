@@ -7,7 +7,8 @@ import { getAllTreatmentsGrouped, getStorePhone, getDepositPercentage } from '@/
 import { ContactButtons } from '@/shared/components/contact-buttons'
 import { InstallBanner } from '@/shared/components/install-banner'
 
-export default async function SalonPage() {
+export default async function SalonPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const [branding, settings, categories, storePhone, depositPct] = await Promise.all([
     getStoreBranding(),
     getStoreSettings(),
@@ -53,13 +54,13 @@ export default async function SalonPage() {
             Reservá tu turno online de forma rápida y segura. Elegí el tratamiento, el día y la hora que más te convenga.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/reservar">
+            <Link href={`/${slug}/reservar`}>
               <Button size="lg" className="bg-bella-rose-600 hover:bg-bella-rose-700 text-white px-8 py-6 text-lg rounded-full shadow-lg shadow-bella-rose-200 w-full sm:w-auto">
                 <CalendarCheck className="w-5 h-5 mr-2" />
                 Reservar turno
               </Button>
             </Link>
-            <Link href="/mi-turno">
+            <Link href={`/${slug}/mi-turno`}>
               <Button size="lg" variant="outline" className="px-8 py-6 text-lg rounded-full w-full sm:w-auto">
                 Consultar mi turno
               </Button>
@@ -166,7 +167,7 @@ export default async function SalonPage() {
 
         {/* CTA final */}
         <section className="text-center">
-          <Link href="/reservar">
+          <Link href={`/${slug}/reservar`}>
             <Button size="lg" className="bg-bella-rose-600 hover:bg-bella-rose-700 text-white px-10 py-6 text-lg rounded-full shadow-lg shadow-bella-rose-200">
               Reservar turno ahora
               <ArrowRight className="w-5 h-5 ml-2" />

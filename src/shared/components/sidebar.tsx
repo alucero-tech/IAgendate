@@ -27,40 +27,39 @@ interface SidebarProps {
   role: Role
   storeName: string
   logoUrl?: string
+  slug: string
 }
 
-const ownerLinks = [
-  { href: '/bella-donna/dashboard', label: 'Inicio', icon: LayoutDashboard },
-  { href: '/bella-donna/calendario', label: 'Calendario', icon: Calendar },
-  { href: '/bella-donna/profesionales', label: 'Profesionales', icon: Users },
-  { href: '/bella-donna/tratamientos', label: 'Tratamientos', icon: Scissors },
-  { href: '/bella-donna/turnos', label: 'Turnos', icon: Clock },
-  { href: '/bella-donna/bloqueos', label: 'Licencias', icon: Ban },
-  { href: '/bella-donna/liquidaciones', label: 'Liquidaciones', icon: DollarSign },
-  { href: '/bella-donna/metricas', label: 'Métricas', icon: BarChart3 },
-  { href: '/bella-donna/configuracion', label: 'Configuración', icon: Settings },
-]
+function getLinksForRole(role: Role, slug: string) {
+  const base = `/${slug}/admin`
+  const ownerLinks = [
+    { href: `${base}/dashboard`, label: 'Inicio', icon: LayoutDashboard },
+    { href: `${base}/calendario`, label: 'Calendario', icon: Calendar },
+    { href: `${base}/profesionales`, label: 'Profesionales', icon: Users },
+    { href: `${base}/tratamientos`, label: 'Tratamientos', icon: Scissors },
+    { href: `${base}/turnos`, label: 'Turnos', icon: Clock },
+    { href: `${base}/bloqueos`, label: 'Licencias', icon: Ban },
+    { href: `${base}/liquidaciones`, label: 'Liquidaciones', icon: DollarSign },
+    { href: `${base}/metricas`, label: 'Métricas', icon: BarChart3 },
+    { href: `${base}/configuracion`, label: 'Configuración', icon: Settings },
+  ]
+  const managerLinks = [
+    { href: `${base}/dashboard`, label: 'Inicio', icon: LayoutDashboard },
+    { href: `${base}/calendario`, label: 'Calendario', icon: Calendar },
+    { href: `${base}/profesionales`, label: 'Profesionales', icon: Users },
+    { href: `${base}/tratamientos`, label: 'Tratamientos', icon: Scissors },
+    { href: `${base}/turnos`, label: 'Turnos', icon: Clock },
+    { href: `${base}/bloqueos`, label: 'Licencias', icon: Ban },
+    { href: `${base}/liquidaciones`, label: 'Liquidaciones', icon: DollarSign },
+  ]
+  const professionalLinks = [
+    { href: `${base}/dashboard`, label: 'Inicio', icon: LayoutDashboard },
+    { href: `${base}/calendario`, label: 'Mi Calendario', icon: Calendar },
+    { href: `${base}/turnos`, label: 'Mis Turnos', icon: Clock },
+    { href: `${base}/bloqueos`, label: 'Mis Licencias', icon: Ban },
+    { href: `${base}/liquidaciones`, label: 'Mis Liquidaciones', icon: DollarSign },
+  ]
 
-// Manager: same as owner but NO metrics and NO config
-const managerLinks = [
-  { href: '/bella-donna/dashboard', label: 'Inicio', icon: LayoutDashboard },
-  { href: '/bella-donna/calendario', label: 'Calendario', icon: Calendar },
-  { href: '/bella-donna/profesionales', label: 'Profesionales', icon: Users },
-  { href: '/bella-donna/tratamientos', label: 'Tratamientos', icon: Scissors },
-  { href: '/bella-donna/turnos', label: 'Turnos', icon: Clock },
-  { href: '/bella-donna/bloqueos', label: 'Licencias', icon: Ban },
-  { href: '/bella-donna/liquidaciones', label: 'Liquidaciones', icon: DollarSign },
-]
-
-const professionalLinks = [
-  { href: '/bella-donna/dashboard', label: 'Inicio', icon: LayoutDashboard },
-  { href: '/bella-donna/calendario', label: 'Mi Calendario', icon: Calendar },
-  { href: '/bella-donna/turnos', label: 'Mis Turnos', icon: Clock },
-  { href: '/bella-donna/bloqueos', label: 'Mis Licencias', icon: Ban },
-  { href: '/bella-donna/liquidaciones', label: 'Mis Liquidaciones', icon: DollarSign },
-]
-
-function getLinksForRole(role: Role) {
   switch (role) {
     case 'owner': return ownerLinks
     case 'manager': return managerLinks
@@ -68,9 +67,9 @@ function getLinksForRole(role: Role) {
   }
 }
 
-export function Sidebar({ professionalName, isOwner, role, storeName, logoUrl }: SidebarProps) {
+export function Sidebar({ professionalName, isOwner, role, storeName, logoUrl, slug }: SidebarProps) {
   const pathname = usePathname()
-  const links = getLinksForRole(role)
+  const links = getLinksForRole(role, slug)
   const roleLabel = getRoleLabel(role)
   const [mobileOpen, setMobileOpen] = useState(false)
 

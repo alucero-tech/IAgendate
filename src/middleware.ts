@@ -127,14 +127,14 @@ async function handleAuth(
   // ── /login con sesión activa → redirigir a dashboard del tenant ──────────
   if (pathname === '/login' && user && slug) {
     const url = request.nextUrl.clone()
-    url.pathname = `/${slug}/dashboard`
+    url.pathname = `/${slug}/admin/dashboard`
     return NextResponse.redirect(url)
   }
 
   // ── /login global (sin slug) con sesión activa → Bella Donna ────────────
   if (pathname === '/login' && user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/bella-donna/dashboard'
+    url.pathname = '/bella-donna/admin/dashboard'
     return NextResponse.redirect(url)
   }
 
