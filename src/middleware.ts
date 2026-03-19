@@ -2,23 +2,38 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // ============================================================
-// CACHÉ EN MEMORIA: slug → { id, status }
-// Se invalida con cada deploy (correcto para un SaaS que
-// raramente cambia slugs). Para volumen alto, migrar a Redis.
+// CACHÉ EN MEMORIA: slug → { id, status, plan_expires_at }
+// TTL de 5 minutos para plan_expires_at (detecta vencimiento rápido).
+// Se invalida con cada deploy. Para volumen alto, migrar a Redis.
 // ============================================================
-const tenantCache = new Map<string, { id: string; status: string } | null>()
+type TenantCacheEntry = {
+  id: string
+  status: string
+  plan_expires_at: string | null
+  cachedAt: number
+}
 
-async function resolveTenant(slug: string): Promise<{ id: string; status: string } | null> {
-  if (tenantCache.has(slug)) return tenantCache.get(slug)!
+const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutos
+
+const tenantCache = new Map<string, TenantCacheEntry | null>()
+
+async function resolveTenant(slug: string): Promise<TenantCacheEntry | null> {
+  const cached = tenantCache.get(slug)
+  if (cached !== undefined) {
+    // Revalidar si el entry expiró (para detectar cambios en plan_expires_at)
+    if (cached === null || Date.now() - cached.cachedAt < CACHE_TTL_MS) {
+      return cached
+    }
+    tenantCache.delete(slug)
+  }
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/tenants?slug=eq.${encodeURIComponent(slug)}&select=id,status&limit=1`,
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/tenants?slug=eq.${encodeURIComponent(slug)}&select=id,status,plan_expires_at&limit=1`,
     {
       headers: {
         apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
         Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
       },
-      // Edge runtime: no cache propio de fetch, el Map lo maneja
       cache: 'no-store',
     }
   )
@@ -28,10 +43,20 @@ async function resolveTenant(slug: string): Promise<{ id: string; status: string
     return null
   }
 
-  const rows = await res.json() as Array<{ id: string; status: string }>
-  const tenant = rows[0] ?? null
+  const rows = await res.json() as Array<{ id: string; status: string; plan_expires_at: string | null }>
+  const row = rows[0] ?? null
+  const tenant = row ? { ...row, cachedAt: Date.now() } : null
   tenantCache.set(slug, tenant)
   return tenant
+}
+
+/**
+ * Verifica si el plan del tenant está activo (no vencido).
+ * Usado por layouts de admin para el "portero de suscripciones".
+ */
+export function isTenantPlanActive(planExpiresAt: string | null): boolean {
+  if (!planExpiresAt) return true // sin fecha = sin límite (plan legacy)
+  return new Date(planExpiresAt) > new Date()
 }
 
 // Segmentos que corresponden a rutas admin (sin /admin/ prefix, patrón actual de Phase 2)
@@ -49,7 +74,7 @@ function isAdminPath(segments: string[]): boolean {
 }
 
 // Rutas que no tienen tenant (plataforma global)
-const PLATFORM_ROUTES = new Set(['login', 'registro', 'superadmin', 'api'])
+const PLATFORM_ROUTES = new Set(['login', 'registro', 'superadmin', 'api', 'planes', 'cuenta-suspendida'])
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
@@ -71,9 +96,17 @@ export async function middleware(request: NextRequest) {
   }
 
   if (tenant.status !== 'active') {
-    // Tenant suspendido → página de cuenta suspendida
+    // Tenant suspendido/cancelado → página de cuenta suspendida
     const url = request.nextUrl.clone()
     url.pathname = '/cuenta-suspendida'
+    url.searchParams.set('slug', slug)
+    return NextResponse.redirect(url)
+  }
+
+  // ── Plan expirado: solo bloquea rutas admin ─────────────────────────────
+  if (isAdminPath(segments) && !isTenantPlanActive(tenant.plan_expires_at)) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/planes'
     url.searchParams.set('slug', slug)
     return NextResponse.redirect(url)
   }

@@ -19,6 +19,7 @@ import {
   Ban,
   Menu,
   X,
+  CreditCard,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -42,6 +43,7 @@ function getLinksForRole(role: Role, slug: string) {
     { href: `${base}/liquidaciones`, label: 'Liquidaciones', icon: DollarSign },
     { href: `${base}/metricas`, label: 'Métricas', icon: BarChart3 },
     { href: `${base}/configuracion`, label: 'Configuración', icon: Settings },
+    { href: `${base}/suscripcion`, label: 'Suscripción', icon: CreditCard },
   ]
   const managerLinks = [
     { href: `${base}/dashboard`, label: 'Inicio', icon: LayoutDashboard },
