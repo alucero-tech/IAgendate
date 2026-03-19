@@ -3,11 +3,19 @@ import { ContactButtons } from '@/shared/components/contact-buttons'
 import { InstallBanner } from '@/shared/components/install-banner'
 import { getStoreName } from '@/features/settings/services/settings-actions'
 import { getStorePhone } from '@/features/booking/services/booking-actions'
+import { getTenantId } from '@/lib/tenant'
 
-export default async function MiTurnoPage() {
+export default async function MiTurnoPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const tenantId = await getTenantId(slug)
+
+  if (!tenantId) {
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Negocio no encontrado</div>
+  }
+
   const [storeName, storePhone] = await Promise.all([
-    getStoreName(),
-    getStorePhone(),
+    getStoreName(tenantId),
+    getStorePhone(tenantId),
   ])
 
   return (
@@ -23,7 +31,7 @@ export default async function MiTurnoPage() {
           <p className="text-muted-foreground mt-1">Consultá tu turno</p>
         </div>
 
-        <MyBookingPortal storePhone={storePhone} storeName={storeName} />
+        <MyBookingPortal storePhone={storePhone} storeName={storeName} tenantId={tenantId} />
       </div>
 
       <InstallBanner />

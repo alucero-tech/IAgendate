@@ -38,7 +38,7 @@ interface BookingData {
 
 type Step = 'phone' | 'bookings' | 'date' | 'time' | 'confirm' | 'done' | 'blocked'
 
-export function RescheduleWizard() {
+export function RescheduleWizard({ tenantId }: { tenantId: string }) {
   const [step, setStep] = useState<Step>('phone')
   const [phone, setPhone] = useState('')
   const [clientName, setClientName] = useState('')
@@ -95,7 +95,7 @@ export function RescheduleWizard() {
 
     // We need treatment IDs - fetch them via the booking items
     // For now, use getAvailableDays per professional
-    const days = await getMultiServiceAvailableDays(cartItems)
+    const days = await getMultiServiceAvailableDays(cartItems, tenantId)
     setAvailableDays(days)
     setStep('date')
     setLoading(false)
@@ -116,7 +116,7 @@ export function RescheduleWizard() {
       price: 0,
     }))
 
-    const availableSlots = await getMultiServiceSlots(cartItems, date)
+    const availableSlots = await getMultiServiceSlots(cartItems, date, tenantId)
     setSlots(availableSlots)
     setStep('time')
     setLoading(false)

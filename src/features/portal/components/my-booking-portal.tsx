@@ -54,9 +54,10 @@ type Step =
 interface MyBookingPortalProps {
   storePhone: string
   storeName: string
+  tenantId: string
 }
 
-export function MyBookingPortal({ storePhone, storeName }: MyBookingPortalProps) {
+export function MyBookingPortal({ storePhone, storeName, tenantId }: MyBookingPortalProps) {
   const [step, setStep] = useState<Step>('phone')
   const [phone, setPhone] = useState('')
   const [clientName, setClientName] = useState('')
@@ -143,7 +144,7 @@ export function MyBookingPortal({ storePhone, storeName }: MyBookingPortalProps)
       price: 0,
     }))
 
-    const days = await getMultiServiceAvailableDays(cartItems)
+    const days = await getMultiServiceAvailableDays(cartItems, tenantId)
     setAvailableDays(days)
     setStep('reschedule-date')
     setLoading(false)
@@ -164,7 +165,7 @@ export function MyBookingPortal({ storePhone, storeName }: MyBookingPortalProps)
       price: 0,
     }))
 
-    const availableSlots = await getMultiServiceSlots(cartItems, date)
+    const availableSlots = await getMultiServiceSlots(cartItems, date, tenantId)
     setSlots(availableSlots)
     setStep('reschedule-time')
     setLoading(false)

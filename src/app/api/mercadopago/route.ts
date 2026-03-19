@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     const treatment = booking.treatments as { name: string; price: number }
-    const depositPct = await getDepositPercentage()
+    const depositPct = await getDepositPercentage(booking.tenant_id ?? '')
     const depositAmount = Math.ceil(treatment.price * depositPct / 100)
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
 

@@ -150,18 +150,22 @@ NO hay REST APIs para datos (solo webhooks: Mercado Pago, push). Usan `revalidat
 - `lib/supabase/server.ts` — Con cookies del usuario (respeta RLS)
 - `lib/supabase/client.ts` — Browser client
 
-### Base de Datos
-14 tablas en Supabase, todas con RLS habilitado. Ver `BUSINESS_LOGIC.md` sección 4 para schema completo.
+### Base de Datos — Multi-Tenant (100% aislada por tenant_id)
+14 tablas en Supabase, todas con RLS habilitado. **Todas las tablas tienen `tenant_id`** — el aislamiento es por código, no solo por RLS.
 Tablas principales: `professionals`, `categories`, `treatments`, `professional_treatments`, `bookings`, `booking_items`, `payments`, `clients`, `settlements`, `schedules`, `time_blocks`, `store_settings`, `push_subscriptions`, `webauthn_credentials`.
+
+**Regla de aislamiento**: Toda query en server actions públicas (catálogo, disponibilidad, booking) DEBE incluir `.eq('tenant_id', tenantId)`. El `tenantId` se resuelve una sola vez en `page.tsx` via `getTenantId(slug)` y se pasa explícitamente en cascada. NUNCA usar `getCurrentTenantSlug()` en acciones públicas (requiere sesión auth).
 
 ### Booking: Arquitectura Modular (5 servicios + barrel)
 `booking-actions.ts` es un barrel que re-exporta todo. Los imports externos no cambian.
-- `catalog-actions.ts` — Queries de categorías, tratamientos, profesionales (5 funciones)
-- `availability-actions.ts` — Cálculo de slots y días disponibles (4 funciones)
-- `booking-crud-actions.ts` — Crear, cancelar, reagendar, consultar reservas (7 funciones)
+- `catalog-actions.ts` — Queries de categorías, tratamientos, profesionales (5 funciones) — **todas requieren `tenantId`**
+- `availability-actions.ts` — Cálculo de slots y días disponibles (4 funciones) — `getMultiServiceAvailableDays(items, tenantId)` y `getMultiServiceSlots(items, date, tenantId)` requieren `tenantId`
+- `booking-crud-actions.ts` — Crear, cancelar, reagendar, consultar reservas (7 funciones) — `createMultiBooking` requiere `tenantId` + `slug`; `getDepositPercentage`, `getStorePhone`, `getTransferAlias` requieren `tenantId`
 - `turn-flow-actions.ts` — Llegada, addons, finalización, no-show (9 funciones)
 - `transfer-payment-actions.ts` — Pagos, reembolsos, transferencias entre profesionales (5 funciones)
 - `booking-helpers.ts` — Tipos compartidos (`CartItem`) y utilidades (`calcDepositAmount`)
+
+**Patrón de propagación**: `[slug]/reservar/page.tsx` → `getTenantId(slug)` → pasa a `BookingWizard` como prop → el wizard lo pasa a cada action call.
 
 ### Validación: Zod Centralizado
 Todos los schemas de validación viven en `shared/schemas/zod-schemas.ts`. Es la fuente de verdad única.
@@ -396,6 +400,13 @@ npm run start        # Servidor producción
 - **Implementado**: `CreationLoader` en `tenant-registration-form.tsx` muestra 3 pasos progresivos.
 - **Patrón**: Para operaciones multi-step > 2 segundos, mostrar progress steps con íconos y estado visual.
 - **Razón**: Transforma latencia técnica en narrativa de creación. Reduce abandono percibido.
+
+### 2026-03-19: Multi-tenant booking — aislamiento completo (PRP-009)
+- **Implementado**: Todas las server actions públicas de catálogo, disponibilidad y booking filtran por `tenant_id`.
+- **Patrón**: `page.tsx` resuelve `tenantId = await getTenantId(slug)` una vez. Lo pasa en cascada como prop/parámetro explícito. NUNCA lo resuelve internamente en las actions públicas.
+- **`replace_all: true` peligroso**: Al reemplazar URLs hardcodeadas globalmente, verificar que el binding de `slug` exista en TODOS los contextos donde aparece. En funciones sin `slug` en scope, el error es silencioso en runtime pero falla en typecheck.
+- **`.maybeSingle()` vs `.single()`**: Usar `.maybeSingle()` en queries que pueden no devolver fila (settings key-value, cliente por teléfono). `.single()` solo cuando la fila SIEMPRE existe.
+- **`getStoreName(tenantId?)`**: Hecha opcional para mantener compatibilidad con rutas de plataforma (login) que no tienen contexto de tenant.
 
 ---
 

@@ -4,13 +4,16 @@ import { getDepositPercentage } from '@/features/booking/services/booking-action
 import { ConfiguracionClient } from '@/features/settings/components/configuracion-client'
 import { redirect } from 'next/navigation'
 
-export default async function ConfiguracionPage() {
+export default async function ConfiguracionPage({ params }: { params: Promise<{ slug: string }> }) {
   const professional = await getCurrentProfessional()
-  if (!professional?.is_owner) redirect('/bella-donna/dashboard')
+  if (!professional?.is_owner) {
+    const { slug } = await params
+    redirect(`/${slug}/admin/dashboard`)
+  }
 
   const [settings, depositPct] = await Promise.all([
     getStoreSettings(),
-    getDepositPercentage(),
+    getDepositPercentage(professional!.tenant_id),
   ])
 
   return <ConfiguracionClient initialSettings={settings} initialDepositPct={depositPct} />

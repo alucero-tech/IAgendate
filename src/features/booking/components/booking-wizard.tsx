@@ -48,7 +48,7 @@ type CartItem = {
 
 type Step = 'services' | 'professionals' | 'datetime' | 'info' | 'payment' | 'confirm' | 'success'
 
-export function BookingWizard({ categories, depositPercentage = 50, transferAlias = '' }: { categories: Category[]; depositPercentage?: number; transferAlias?: string }) {
+export function BookingWizard({ categories, depositPercentage = 50, transferAlias = '', tenantId, slug }: { categories: Category[]; depositPercentage?: number; transferAlias?: string; tenantId: string; slug: string }) {
   const [step, setStep] = useState<Step>('services')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -94,7 +94,7 @@ export function BookingWizard({ categories, depositPercentage = 50, transferAlia
   async function loadTreatments() {
     if (treatmentsLoaded) return
     setLoading(true)
-    const data = await getAllTreatmentsGrouped()
+    const data = await getAllTreatmentsGrouped(tenantId)
     setGroupedTreatments(data)
     setTreatmentsLoaded(true)
     setLoading(false)
@@ -105,7 +105,7 @@ export function BookingWizard({ categories, depositPercentage = 50, transferAlia
     setPendingTreatment(treatment)
     setPendingCategoryName(categoryName)
     setLoading(true)
-    const profs = await getProfessionalsForTreatment(treatment.id)
+    const profs = await getProfessionalsForTreatment(treatment.id, tenantId)
     setProfessionals(profs)
     setLoading(false)
 
@@ -148,7 +148,7 @@ export function BookingWizard({ categories, depositPercentage = 50, transferAlia
     }
     setLoading(true)
     setError(null)
-    const days = await getMultiServiceAvailableDays(cart)
+    const days = await getMultiServiceAvailableDays(cart, tenantId)
     setAvailableDays(days)
     setSelectedDate(null)
     setSelectedTime(null)
@@ -160,7 +160,7 @@ export function BookingWizard({ categories, depositPercentage = 50, transferAlia
     setSelectedDate(dateStr)
     setSelectedTime(null)
     setLoading(true)
-    const s = await getMultiServiceSlots(cart, dateStr)
+    const s = await getMultiServiceSlots(cart, dateStr, tenantId)
     setSlots(s)
     setLoading(false)
   }
@@ -206,6 +206,8 @@ export function BookingWizard({ categories, depositPercentage = 50, transferAlia
         durationMinutes: item.durationMinutes,
         price: item.price,
       })),
+      tenantId,
+      slug,
     })
 
     if ('error' in result && result.error) {

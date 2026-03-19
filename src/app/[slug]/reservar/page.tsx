@@ -4,14 +4,22 @@ import { BookingWizard } from '@/features/booking/components/booking-wizard'
 import { InstallBanner } from '@/shared/components/install-banner'
 import { ContactButtons } from '@/shared/components/contact-buttons'
 import { ChatWidget } from '@/features/ai-assistant/components/chat-widget'
+import { getTenantId } from '@/lib/tenant'
 
-export default async function ReservarPage() {
+export default async function ReservarPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const tenantId = await getTenantId(slug)
+
+  if (!tenantId) {
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Negocio no encontrado</div>
+  }
+
   const [categories, storeName, storePhone, depositPct, transferAlias] = await Promise.all([
-    getPublicCategories(),
-    getStoreName(),
-    getStorePhone(),
-    getDepositPercentage(),
-    getTransferAlias(),
+    getPublicCategories(tenantId),
+    getStoreName(tenantId),
+    getStorePhone(tenantId),
+    getDepositPercentage(tenantId),
+    getTransferAlias(tenantId),
   ])
 
   return (
@@ -27,7 +35,13 @@ export default async function ReservarPage() {
           <p className="text-muted-foreground mt-1">Reservá tu turno</p>
         </div>
 
-        <BookingWizard categories={categories} depositPercentage={depositPct} transferAlias={transferAlias} />
+        <BookingWizard
+          categories={categories}
+          depositPercentage={depositPct}
+          transferAlias={transferAlias}
+          tenantId={tenantId}
+          slug={slug}
+        />
       </div>
 
       <InstallBanner />

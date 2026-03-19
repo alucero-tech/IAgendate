@@ -26,10 +26,9 @@ export default async function MainLayout({
     redirect('/login')
   }
 
-  const [professional, branding, storePhone] = await Promise.all([
+  const [professional, branding] = await Promise.all([
     getCurrentProfessional(),
     getStoreBranding(),
-    getStorePhone(),
   ])
 
   // Si hay sesión pero no tiene registro de profesional, cerrar sesión y redirigir
@@ -37,6 +36,8 @@ export default async function MainLayout({
     await supabase.auth.signOut()
     redirect('/login')
   }
+
+  const storePhone = await getStorePhone(professional.tenant_id)
 
   // Leer plan_expires_at solo para owner (evita query innecesaria para otros roles)
   let planExpiresAt: string | null = null

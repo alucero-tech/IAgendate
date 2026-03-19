@@ -2,24 +2,26 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// ========== QUERIES PÚBLICAS (sin auth) ==========
+// ========== QUERIES PÚBLICAS (sin auth, requieren tenantId) ==========
 
-export async function getPublicCategories() {
+export async function getPublicCategories(tenantId: string) {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from('categories')
     .select('id, name, description')
+    .eq('tenant_id', tenantId)
     .eq('active', true)
     .order('display_order')
 
   return data || []
 }
 
-export async function getAllTreatmentsGrouped() {
+export async function getAllTreatmentsGrouped(tenantId: string) {
   const supabase = createAdminClient()
   const { data: categories } = await supabase
     .from('categories')
     .select('id, name, description')
+    .eq('tenant_id', tenantId)
     .eq('active', true)
     .order('display_order')
 
@@ -28,6 +30,7 @@ export async function getAllTreatmentsGrouped() {
   const { data: treatments } = await supabase
     .from('treatments')
     .select('id, name, description, duration_minutes, price, category_id')
+    .eq('tenant_id', tenantId)
     .eq('active', true)
     .order('name')
 
@@ -37,19 +40,20 @@ export async function getAllTreatmentsGrouped() {
   }))
 }
 
-export async function getTreatmentsByCategory(categoryId: string) {
+export async function getTreatmentsByCategory(categoryId: string, tenantId: string) {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from('treatments')
     .select('id, name, description, duration_minutes, price, category_id')
     .eq('category_id', categoryId)
+    .eq('tenant_id', tenantId)
     .eq('active', true)
     .order('name')
 
   return data || []
 }
 
-export async function getProfessionalsForTreatment(treatmentId: string) {
+export async function getProfessionalsForTreatment(treatmentId: string, tenantId: string) {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from('professional_treatments')
@@ -58,6 +62,7 @@ export async function getProfessionalsForTreatment(treatmentId: string) {
       professionals (id, first_name, last_name, active)
     `)
     .eq('treatment_id', treatmentId)
+    .eq('tenant_id', tenantId)
 
   if (!data) return []
 
@@ -71,6 +76,7 @@ export async function getProfessionalsForTreatment(treatmentId: string) {
   return professionals
 }
 
+// Admin-only: scoped by professional_id (already belongs to one tenant)
 export async function getTreatmentsForProfessional(professionalId: string) {
   const supabase = createAdminClient()
 

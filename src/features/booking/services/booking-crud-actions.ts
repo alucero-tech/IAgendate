@@ -18,34 +18,37 @@ import { getAvailableSlots } from './availability-actions'
 
 // ========== DEPÓSITO CONFIGURABLE ==========
 
-export async function getDepositPercentage(): Promise<number> {
+export async function getDepositPercentage(tenantId: string): Promise<number> {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from('store_settings')
     .select('value')
     .eq('key', 'deposit_percentage')
-    .single()
+    .eq('tenant_id', tenantId)
+    .maybeSingle()
   const pct = parseInt(data?.value || '50', 10)
   if (isNaN(pct) || pct < 10 || pct > 90) return 50
   return pct
 }
 
-export async function getTransferAlias(): Promise<string> {
+export async function getTransferAlias(tenantId: string): Promise<string> {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from('store_settings')
     .select('value')
     .eq('key', 'transfer_alias')
+    .eq('tenant_id', tenantId)
     .maybeSingle()
   return (data?.value as string) || ''
 }
 
-export async function getStorePhone(): Promise<string> {
+export async function getStorePhone(tenantId: string): Promise<string> {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from('store_settings')
     .select('value')
     .eq('key', 'phone')
+    .eq('tenant_id', tenantId)
     .maybeSingle()
   return data?.value || ''
 }
@@ -77,8 +80,11 @@ export async function createMultiBooking(input: {
   startTime: string
   paymentMethod: 'mercadopago' | 'transfer'
   items: { treatmentId: string; professionalId: string; durationMinutes: number; price: number }[]
+  tenantId: string
+  slug: string
 }) {
-  const parsed = multiBookingSchema.safeParse(input)
+  const { tenantId, slug, ...rest } = input
+  const parsed = multiBookingSchema.safeParse(rest)
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message }
   }
@@ -90,14 +96,15 @@ export async function createMultiBooking(input: {
   }
 
   const supabase = createAdminClient()
-  const depositPct = await getDepositPercentage()
+  const depositPct = await getDepositPercentage(tenantId)
 
-  // 1. Create or find client by phone
+  // 1. Create or find client by phone (scoped to tenant)
   const { data: existingClient } = await supabase
     .from('clients')
     .select('id')
     .eq('phone', parsed.data.phone)
-    .single()
+    .eq('tenant_id', tenantId)
+    .maybeSingle()
 
   let clientId: string
 
@@ -116,6 +123,7 @@ export async function createMultiBooking(input: {
         last_name: parsed.data.lastName,
         phone: parsed.data.phone,
         email: parsed.data.email || null,
+        tenant_id: tenantId,
       })
       .select('id')
       .single()
@@ -126,11 +134,11 @@ export async function createMultiBooking(input: {
     clientId = newClient.id
   }
 
-  // 2. Resolve "any" professional assignments
+  // 2. Resolve "any" professional assignments (scoped to tenant)
   const resolvedItems = [...parsed.data.items]
   for (let i = 0; i < resolvedItems.length; i++) {
     if (resolvedItems[i].professionalId === 'any') {
-      const profs = await getProfessionalsForTreatment(resolvedItems[i].treatmentId)
+      const profs = await getProfessionalsForTreatment(resolvedItems[i].treatmentId, tenantId)
       // Find first professional with a free slot at the requested time
       let assigned = false
       for (const prof of profs) {
@@ -209,6 +217,7 @@ export async function createMultiBooking(input: {
       status: 'pending_payment',
       amount_total: totalAmount,
       amount_paid: 0,
+      tenant_id: tenantId,
     })
     .select('id')
     .single()
@@ -255,7 +264,7 @@ export async function createMultiBooking(input: {
       notifyProfessional(item.professionalId, {
         title: 'Nueva reserva',
         body: `${clientName} reservó para el ${parsed.data.date} a las ${globalStart}hs`,
-        url: '/bella-donna/turnos',
+        url: `/${slug}/turnos`,
         tag: `booking-${booking.id}`,
       }).catch(() => {}) // fire and forget
     }
@@ -263,7 +272,7 @@ export async function createMultiBooking(input: {
   notifyOwner({
     title: 'Nueva reserva',
     body: `${clientName} · ${parsed.data.date} ${globalStart}hs · ${parsed.data.paymentMethod === 'transfer' ? 'Transferencia (pendiente)' : 'Mercado Pago'}`,
-    url: '/bella-donna/turnos',
+    url: `/${slug}/turnos`,
     tag: `booking-${booking.id}`,
   }).catch(() => {})
 
@@ -363,23 +372,26 @@ export async function cancelBookingByClient(bookingId: string, clientPhone: stri
   // 4. Notify professionals and owner
   const { data: bk } = await supabase
     .from('bookings')
-    .select('booking_items (professional_id)')
+    .select('tenant_id, booking_items (professional_id), tenants!inner(slug)')
     .eq('id', bookingId)
     .single()
+
+  const tenantSlug = (bk?.tenants as unknown as { slug: string } | null)?.slug ?? ''
+  const notifUrl = tenantSlug ? `/${tenantSlug}/turnos` : undefined
 
   const profIds = [...new Set((bk?.booking_items as { professional_id: string }[] || []).map((i: { professional_id: string }) => i.professional_id))]
   for (const pid of profIds) {
     notifyProfessional(pid, {
       title: 'Turno cancelado por clienta',
       body: `La clienta canceló su turno del ${booking.booking_date}.`,
-      url: '/bella-donna/turnos',
+      url: notifUrl,
       tag: `client-cancel-${bookingId}`,
     }).catch(() => {})
   }
   notifyOwner({
     title: 'Turno cancelado por clienta',
     body: `Una clienta canceló su turno del ${booking.booking_date} a las ${booking.start_time}hs. Seña NO reembolsada.`,
-    url: '/bella-donna/turnos',
+    url: notifUrl,
     tag: `client-cancel-${bookingId}`,
   }).catch(() => {})
 

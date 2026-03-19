@@ -9,12 +9,14 @@ import { InstallBanner } from '@/shared/components/install-banner'
 
 export default async function SalonPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  const { getTenantId } = await import('@/lib/tenant')
+  const tenantId = (await getTenantId(slug)) ?? ''
   const [branding, settings, categories, storePhone, depositPct] = await Promise.all([
     getStoreBranding(),
     getStoreSettings(),
-    getAllTreatmentsGrouped(),
-    getStorePhone(),
-    getDepositPercentage(),
+    getAllTreatmentsGrouped(tenantId),
+    getStorePhone(tenantId),
+    getDepositPercentage(tenantId),
   ])
 
   const hasAddress = !!settings.address

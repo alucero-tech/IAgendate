@@ -94,13 +94,11 @@ export async function getStoreSettings(): Promise<StoreSettings> {
   return settings
 }
 
-export async function getStoreName(): Promise<string> {
+export async function getStoreName(tenantId?: string): Promise<string> {
   const supabase = createAdminClient()
-  const { data } = await supabase
-    .from('store_settings')
-    .select('value')
-    .eq('key', 'store_name')
-    .single()
+  let query = supabase.from('store_settings').select('value').eq('key', 'store_name')
+  if (tenantId) query = query.eq('tenant_id', tenantId)
+  const { data } = await query.maybeSingle()
   return data?.value || DEFAULTS.store_name
 }
 

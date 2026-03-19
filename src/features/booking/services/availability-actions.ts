@@ -140,7 +140,7 @@ export async function getAvailableDays(professionalId: string) {
 
 // ========== DISPONIBILIDAD MULTI-SERVICIO ==========
 
-export async function getMultiServiceAvailableDays(items: CartItem[]) {
+export async function getMultiServiceAvailableDays(items: CartItem[], tenantId: string) {
   // Separate fixed-professional items from "any" items
   const fixedItems = items.filter(i => i.professionalId !== 'any')
   const anyItems = items.filter(i => i.professionalId === 'any')
@@ -166,7 +166,7 @@ export async function getMultiServiceAvailableDays(items: CartItem[]) {
 
   // For "any" items: a day is valid if AT LEAST ONE professional for that treatment is available
   for (const item of anyItems) {
-    const profs = await getProfessionalsForTreatment(item.treatmentId)
+    const profs = await getProfessionalsForTreatment(item.treatmentId, tenantId)
     const profDays = await Promise.all(profs.map(p => getAvailableDays(p.id)))
     // Union of all professionals' days
     const unionDays = new Set(profDays.flat())
@@ -176,7 +176,7 @@ export async function getMultiServiceAvailableDays(items: CartItem[]) {
   return commonDays
 }
 
-export async function getMultiServiceSlots(items: CartItem[], dateStr: string) {
+export async function getMultiServiceSlots(items: CartItem[], dateStr: string, tenantId: string) {
   // Separate fixed vs "any" items
   const fixedItems = items.filter(i => i.professionalId !== 'any')
   const anyItems = items.filter(i => i.professionalId === 'any')
@@ -222,7 +222,7 @@ export async function getMultiServiceSlots(items: CartItem[], dateStr: string) {
   // --- Get slots for "any" items (union across all professionals) ---
   const anySlotsPerItem: { time: string; available: boolean }[][] = []
   for (const item of anyItems) {
-    const profs = await getProfessionalsForTreatment(item.treatmentId)
+    const profs = await getProfessionalsForTreatment(item.treatmentId, tenantId)
     // Get slots for each professional, then UNION (any one free = slot available)
     const profSlotsList = await Promise.all(
       profs.map(async p => {
