@@ -46,7 +46,8 @@ export default async function SuscripcionPage({ params }: { params: Promise<{ sl
   const waMessage = encodeURIComponent(
     `Hola, quiero gestionar mi suscripción de IAgendate (/${slug}). Email: ${tenant.owner_email}`
   )
-  const waLink = `https://wa.me/5491100000000?text=${waMessage}` // TODO: número real
+  const waNumber = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ?? '5491100000000'
+  const waLink = `https://wa.me/${waNumber}?text=${waMessage}`
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 py-6">

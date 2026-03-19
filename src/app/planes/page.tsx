@@ -42,7 +42,8 @@ export default async function PlanesPage({ searchParams }: PlanesPageProps) {
   const waMessage = encodeURIComponent(
     `Hola, quiero renovar mi plan de IAgendate${slug ? ` para el negocio /${slug}` : ''}. ¿Pueden ayudarme?`
   )
-  const waLink = `https://wa.me/5491100000000?text=${waMessage}` // TODO: reemplazar con número real
+  const waNumber = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ?? '5491100000000'
+  const waLink = `https://wa.me/${waNumber}?text=${waMessage}`
 
   return (
     <div className="min-h-screen mesh-gradient-bg relative overflow-hidden">
