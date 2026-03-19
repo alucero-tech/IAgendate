@@ -40,15 +40,23 @@ export async function confirmTransferPayment(bookingId: string) {
 
   if (error) return { error: error.message }
 
-  // Notify professionals about confirmed payment
+  // Notify professionals and client about confirmed payment
   const { data: bk } = await supabase
     .from('bookings')
-    .select('booking_items (professional_id)')
+    .select('client_id, booking_items (professional_id)')
     .eq('id', bookingId)
     .single()
   const profIds = [...new Set((bk?.booking_items as { professional_id: string }[] || []).map((i: { professional_id: string }) => i.professional_id))]
   for (const pid of profIds) {
-    notifyProfessional(pid, { title: 'Seña confirmada', body: 'Se confirmó el pago de una reserva.' })
+    notifyProfessional(pid, { title: 'Seña confirmada', body: 'Se confirmó el pago de una reserva.' }).catch(() => {})
+  }
+  if (bk?.client_id) {
+    notifyClient(bk.client_id, {
+      title: 'Reserva confirmada',
+      body: 'Tu seña fue confirmada. ¡Te esperamos!',
+      url: '/mi-turno',
+      tag: `confirmed-${bookingId}`,
+    }).catch(() => {})
   }
 
   revalidatePath('/bella-donna/turnos')
