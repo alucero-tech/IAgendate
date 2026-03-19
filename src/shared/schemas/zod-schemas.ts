@@ -191,6 +191,30 @@ export const mpWebhookSchema = z.object({
   data: z.object({ id: z.union([z.string(), z.number()]) }).optional(),
 })
 
+// ========== TENANT REGISTRATION ==========
+
+/** Slug de tenant: minúsculas, números y guiones, 3-50 caracteres */
+export const tenantSlugSchema = z.string()
+  .min(3, 'El slug debe tener al menos 3 caracteres')
+  .max(50, 'El slug no puede superar los 50 caracteres')
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Solo letras minúsculas, números y guiones (ej: mi-salon)')
+
+/** Paso 1: nombre del negocio + slug */
+export const tenantStep1Schema = z.object({
+  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').max(100),
+  slug: tenantSlugSchema,
+})
+
+/** Paso 2: datos del propietario */
+export const tenantStep2Schema = z.object({
+  ownerName: z.string().min(2, 'Tu nombre debe tener al menos 2 caracteres').max(100),
+  email: z.string().email('Email inválido'),
+  password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+})
+
+/** Schema completo de registro */
+export const tenantRegistrationSchema = tenantStep1Schema.merge(tenantStep2Schema)
+
 /** POST /api/push — registrar push subscription */
 export const pushSubscriptionSchema = z.object({
   subscription: z.object({
