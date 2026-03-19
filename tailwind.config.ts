@@ -77,6 +77,12 @@ const config: Config = {
           800: '#5b21b6',
           900: '#4c1d95',
         },
+        // Colores de marca dinámica — inyectados por [slug]/layout.tsx vía CSS vars
+        // Cada tenant define --brand-primary y --brand-accent en store_settings
+        'brand': {
+          primary: 'var(--brand-primary)',
+          accent: 'var(--brand-accent)',
+        },
         'bella-gold': {
           50: '#fffbeb',
           100: '#fef3c7',

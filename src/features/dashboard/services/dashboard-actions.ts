@@ -93,3 +93,23 @@ export async function getDashboardStats(professionalId: string, isOwner: boolean
     weeklyRevenue,
   }
 }
+
+export async function getOnboardingStatus(tenantId: string) {
+  const supabase = createAdminClient()
+
+  const [{ count: treatmentCount }, { count: scheduleCount }] = await Promise.all([
+    supabase
+      .from('treatments')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId),
+    supabase
+      .from('schedules')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId),
+  ])
+
+  return {
+    hasTreatments: (treatmentCount ?? 0) > 0,
+    hasSchedules: (scheduleCount ?? 0) > 0,
+  }
+}

@@ -1,109 +1,410 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
-import { Scissors, Clock, CreditCard, Calendar } from 'lucide-react'
+import {
+  Calendar,
+  CreditCard,
+  Users,
+  BarChart3,
+  CheckCircle2,
+  ArrowRight,
+  Smartphone,
+  Bell,
+  Zap,
+  Shield,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { getStoreBranding } from '@/features/settings/services/settings-actions'
-import { InstallBanner } from '@/shared/components/install-banner'
 
-export default async function HomePage() {
-  const branding = await getStoreBranding()
+export const metadata: Metadata = {
+  title: 'IAgendate — Sistema de reservas para peluquerías y salones',
+  description:
+    'Tus clientas reservan solas, pagan la seña online y reciben recordatorios automáticos. Gestión completa de turnos, profesionales y pagos para salones de belleza argentinos.',
+  keywords: ['reservas online', 'peluquería', 'salón de belleza', 'sistema turnos', 'gestión agenda'],
+  openGraph: {
+    title: 'IAgendate — Reservas online para tu salón',
+    description:
+      'Sin caos de WhatsApp. Tus clientas reservan 24/7, pagan la seña y vos solo atendés.',
+    url: 'https://iagendate.vercel.app',
+    siteName: 'IAgendate',
+    locale: 'es_AR',
+    type: 'website',
+    images: [
+      {
+        url: 'https://iagendate.vercel.app/icons/icon-512x512.png',
+        width: 512,
+        height: 512,
+        alt: 'IAgendate — Reservas para salones de belleza',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'IAgendate — Reservas online para tu salón',
+    description: 'Sin caos de WhatsApp. Reservas 24/7, seña online y recordatorios automáticos.',
+  },
+  metadataBase: new URL('https://iagendate.vercel.app'),
+}
 
+export default function HomePage() {
   return (
-    <div className="min-h-screen mesh-gradient-bg relative overflow-hidden">
-      {/* Blobs decorativos */}
-      <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-bella-rose-300 rounded-full blur-[150px] opacity-30 animate-blob" />
-      <div className="absolute top-1/2 right-1/4 w-[350px] h-[350px] bg-bella-violet-300 rounded-full blur-[150px] opacity-25 animate-blob animation-delay-2000" />
-      <div className="absolute bottom-0 left-1/2 w-[300px] h-[300px] bg-bella-gold-300 rounded-full blur-[150px] opacity-20 animate-blob animation-delay-4000" />
+    <div className="min-h-screen bg-[#030711] relative overflow-hidden text-slate-50">
+      {/* Mesh gradient blobs — electric blue/cyan */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-blue-600 rounded-full blur-[200px] opacity-10 animate-blob" />
+      <div className="absolute top-1/3 right-0 w-[500px] h-[500px] bg-cyan-500 rounded-full blur-[200px] opacity-8 animate-blob animation-delay-2000" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-800 rounded-full blur-[200px] opacity-10 animate-blob animation-delay-4000" />
 
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <div className="flex items-center gap-3">
-          {branding.logoUrl && (
-            <Image src={branding.logoUrl} alt={branding.name} width={40} height={40} className="w-10 h-10 rounded-lg object-contain" />
-          )}
-          <h1 className="text-2xl font-bold text-bella-rose-600">
-            {branding.name}
-          </h1>
+      <header className="relative z-10 flex items-center justify-between px-6 py-5 max-w-6xl mx-auto border-b border-slate-800/60 backdrop-blur-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <Calendar className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-xl font-bold text-white">IAgendate</span>
         </div>
-        <Link href="/login">
-          <Button variant="outline" size="sm">
-            Ingresar
-          </Button>
-        </Link>
+        <nav className="hidden md:flex items-center gap-6 text-sm text-slate-400">
+          <a href="#features" className="hover:text-white transition-colors">Funciones</a>
+          <a href="#how-it-works" className="hover:text-white transition-colors">Cómo funciona</a>
+          <a href="#pricing" className="hover:text-white transition-colors">Precios</a>
+        </nav>
+        <div className="flex items-center gap-2">
+          <Link href="/login">
+            <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-slate-800">
+              Ingresar
+            </Button>
+          </Link>
+          <Link href="/registro">
+            <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-5 shadow-lg shadow-blue-500/25">
+              Empezar gratis
+            </Button>
+          </Link>
+        </div>
       </header>
 
       {/* Hero */}
-      <main className="relative z-10 max-w-4xl mx-auto px-6 pt-16 pb-24 text-center">
-        <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-          Reservá tu turno
-          <span className="block text-bella-rose-500">en segundos</span>
-        </h2>
-        <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-          Elegí tu tratamiento, seleccioná el horario que te quede mejor y confirmá con el pago. Así de fácil.
+      <section className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-28 text-center">
+        <div className="inline-flex items-center gap-2 bg-blue-950/60 border border-blue-800/60 text-blue-400 text-sm px-4 py-1.5 rounded-full mb-8 backdrop-blur-sm">
+          <Zap className="w-3.5 h-3.5" />
+          Sistema de reservas para peluquerías y salones de belleza
+        </div>
+
+        <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-[1.1] tracking-tight">
+          Tu peluquería,
+          <span className="block bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            sin caos de WhatsApp
+          </span>
+        </h1>
+
+        <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+          Tus clientas reservan solas, pagan la seña online y reciben recordatorios automáticos.
+          Vos solo atendés. Sin idas y vueltas, sin turnos perdidos.
         </p>
+
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link href="/reservar">
-            <Button size="lg" className="bg-bella-rose-600 hover:bg-bella-rose-700 text-white px-10 py-6 text-lg rounded-full shadow-lg shadow-bella-rose-200 w-full sm:w-auto">
-              Reservar turno
+          <Link href="/registro">
+            <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-10 py-6 text-lg rounded-full shadow-xl shadow-blue-500/30 w-full sm:w-auto group transition-all hover:shadow-blue-500/50">
+              Crear mi sala gratis
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
-          <Link href="/mi-turno">
-            <Button size="lg" variant="outline" className="px-8 py-6 text-lg rounded-full w-full sm:w-auto">
-              Consultar mi turno
+          <Link href="/bella-donna/reservar">
+            <Button size="lg" variant="outline" className="px-8 py-6 text-lg rounded-full w-full sm:w-auto border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white hover:border-slate-600">
+              Ver demo en vivo
             </Button>
           </Link>
         </div>
 
-        {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-20">
+        <p className="mt-4 text-sm text-slate-500">
+          Sin tarjeta de crédito · Configuración en 5 minutos
+        </p>
+
+        {/* Social proof */}
+        <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-slate-400">
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-2">
+              {['🧴', '✂️', '💅', '💆'].map((emoji, i) => (
+                <div key={i} className="w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-900 flex items-center justify-center text-sm">
+                  {emoji}
+                </div>
+              ))}
+            </div>
+            <span>+50 salones activos</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <CheckCircle2 className="w-4 h-4 text-cyan-500" />
+            <span>99.9% uptime</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Shield className="w-4 h-4 text-blue-400" />
+            <span>Pagos seguros con Mercado Pago</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="relative z-10 max-w-6xl mx-auto px-6 py-20">
+        <div className="text-center mb-14">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            Todo lo que tu salón necesita
+          </h2>
+          <p className="text-slate-400 text-lg max-w-xl mx-auto">
+            Diseñado específicamente para peluquerías y salones de belleza argentinos.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <FeatureCard
-            icon={<Scissors className="w-8 h-8 text-bella-rose-500" />}
-            title="Elegí tu tratamiento"
-            description="Todas las especialidades disponibles para vos"
+            icon={<Calendar className="w-5 h-5 text-blue-400" />}
+            iconBg="bg-blue-950/80 border-blue-800/50"
+            title="Reservas 24/7"
+            description="Las clientas reservan desde su celular a cualquier hora, sin llamadas ni mensajes de WhatsApp."
           />
           <FeatureCard
-            icon={<Calendar className="w-8 h-8 text-bella-violet-500" />}
-            title="Horarios en tiempo real"
-            description="Solo ves los turnos realmente disponibles"
+            icon={<CreditCard className="w-5 h-5 text-cyan-400" />}
+            iconBg="bg-cyan-950/80 border-cyan-800/50"
+            title="Seña online"
+            description="Cobrarás la seña automáticamente por Mercado Pago o transferencia bancaria. Cero impagos."
           />
           <FeatureCard
-            icon={<CreditCard className="w-8 h-8 text-bella-gold-500" />}
-            title="Pagá la seña online"
-            description="Seña por Mercado Pago o transferencia"
+            icon={<Users className="w-5 h-5 text-blue-300" />}
+            iconBg="bg-blue-950/80 border-blue-800/50"
+            title="Gestión de profesionales"
+            description="Cada profesional ve solo su agenda. Comisiones, liquidaciones y rendimiento individual."
           />
           <FeatureCard
-            icon={<Clock className="w-8 h-8 text-bella-rose-400" />}
-            title="Reagendá si necesitás"
-            description="Podés cambiar tu turno 1 vez sin costo"
+            icon={<Bell className="w-5 h-5 text-cyan-400" />}
+            iconBg="bg-cyan-950/80 border-cyan-800/50"
+            title="Recordatorios automáticos"
+            description="Notificaciones push que reducen los no-shows. Las clientas reciben aviso antes de su turno."
+          />
+          <FeatureCard
+            icon={<BarChart3 className="w-5 h-5 text-blue-400" />}
+            iconBg="bg-blue-950/80 border-blue-800/50"
+            title="Métricas en tiempo real"
+            description="Dashboard con ingresos, tratamientos más vendidos y rendimiento por profesional."
+          />
+          <FeatureCard
+            icon={<Smartphone className="w-5 h-5 text-cyan-400" />}
+            iconBg="bg-cyan-950/80 border-cyan-800/50"
+            title="App instalable (PWA)"
+            description="Tus clientas instalan la app sin ir a la App Store. Funciona en cualquier celular."
           />
         </div>
-      </main>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" className="relative z-10 max-w-4xl mx-auto px-6 py-20">
+        <div className="text-center mb-14">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            En 5 minutos estás operativo
+          </h2>
+          <p className="text-slate-400 text-lg">Sin instalaciones ni conocimientos técnicos.</p>
+        </div>
+
+        <div className="space-y-4">
+          {[
+            {
+              step: '01',
+              title: 'Creás tu sala',
+              desc: 'Registrás tu salón con nombre y URL única (ej: iagendate.vercel.app/mi-peluqueria). Sin tarjeta.',
+            },
+            {
+              step: '02',
+              title: 'Configurás tus servicios',
+              desc: 'Agregás tratamientos, precios, duraciones y asignás profesionales a cada uno.',
+            },
+            {
+              step: '03',
+              title: 'Compartís el link',
+              desc: 'Mandás el link de reserva por Instagram, WhatsApp o lo ponés en tu bio. Las clientas hacen el resto.',
+            },
+            {
+              step: '04',
+              title: 'Gestionás todo desde el dashboard',
+              desc: 'Calendarios, liquidaciones, bloqueos, métricas. Todo en un solo lugar, desde tu celular.',
+            },
+          ].map(({ step, title, desc }) => (
+            <div key={step} className="flex gap-6 items-start bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm hover:border-slate-700 transition-colors">
+              <div className="text-3xl font-black text-slate-700 shrink-0 w-12 text-right font-mono">{step}</div>
+              <div>
+                <h3 className="font-semibold text-white text-lg mb-1">{title}</h3>
+                <p className="text-slate-400">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="relative z-10 max-w-4xl mx-auto px-6 py-20">
+        <div className="text-center mb-14">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Precio simple y transparente</h2>
+          <p className="text-slate-400 text-lg">Sin sorpresas. Sin comisiones por reserva.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          <PricingCard
+            plan="Básico"
+            price="Gratis"
+            period=""
+            features={[
+              'Hasta 2 profesionales',
+              'Reservas ilimitadas',
+              'Seña online',
+              'Dashboard básico',
+            ]}
+            cta="Empezar gratis"
+            href="/registro"
+            highlight={false}
+          />
+          <PricingCard
+            plan="Pro"
+            price="$9.990"
+            period="/ mes"
+            features={[
+              'Profesionales ilimitados',
+              'Métricas avanzadas',
+              'Liquidaciones automáticas',
+              'Notificaciones push',
+              'Soporte prioritario',
+            ]}
+            cta="Activar Pro"
+            href="/registro"
+            highlight
+          />
+        </div>
+      </section>
+
+      {/* CTA Final */}
+      <section className="relative z-10 max-w-3xl mx-auto px-6 py-20 text-center">
+        <div className="bg-gradient-to-b from-slate-900 to-slate-900/80 border border-slate-800 rounded-3xl p-12 relative overflow-hidden">
+          {/* Glow interior */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent to-cyan-600/10 rounded-3xl" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+
+          <div className="relative z-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Empezá hoy, sin riesgos
+            </h2>
+            <p className="text-slate-400 text-lg mb-8 max-w-xl mx-auto">
+              Creá tu sala gratis y empezá a recibir reservas en minutos.
+              Si no te convence, no perdiste nada.
+            </p>
+            <Link href="/registro">
+              <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-12 py-6 text-xl rounded-full shadow-xl shadow-blue-500/30 group transition-all hover:shadow-blue-500/50">
+                Crear mi sala gratis
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <p className="mt-4 text-sm text-slate-500">Sin tarjeta · Sin instalaciones · 5 minutos</p>
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="relative z-10 text-center py-8 text-muted-foreground text-sm">
-        <p>&copy; {new Date().getFullYear()} {branding.name}. Todos los derechos reservados.</p>
-        <p className="text-xs mt-1 opacity-60">Potenciado por IAgendate</p>
+      <footer className="relative z-10 border-t border-slate-800/60 mt-8">
+        <div className="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-400">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+              <Calendar className="w-3 h-3 text-white" />
+            </div>
+            <span className="font-semibold text-white">IAgendate</span>
+            <span className="text-slate-600">© {new Date().getFullYear()}</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <Link href="/login" className="hover:text-white transition-colors">Ingresar</Link>
+            <Link href="/registro" className="hover:text-white transition-colors">Registrarse</Link>
+            {process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP && (
+              <a
+                href={`https://wa.me/${process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP}`}
+                className="hover:text-white transition-colors"
+              >
+                Soporte
+              </a>
+            )}
+          </div>
+        </div>
       </footer>
-
-      <InstallBanner />
     </div>
   )
 }
 
 function FeatureCard({
   icon,
+  iconBg,
   title,
   description,
 }: {
   icon: React.ReactNode
+  iconBg: string
   title: string
   description: string
 }) {
   return (
-    <div className="mesh-gradient-card rounded-2xl p-6 border border-border/50 backdrop-blur-sm">
-      <div className="mb-4">{icon}</div>
-      <h3 className="font-semibold text-foreground mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
+    <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm hover:border-slate-700 hover:bg-slate-900/80 transition-all group">
+      <div className={`w-10 h-10 rounded-xl border ${iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+        {icon}
+      </div>
+      <h3 className="font-semibold text-white mb-2">{title}</h3>
+      <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
+    </div>
+  )
+}
+
+function PricingCard({
+  plan,
+  price,
+  period,
+  features,
+  cta,
+  href,
+  highlight,
+}: {
+  plan: string
+  price: string
+  period: string
+  features: string[]
+  cta: string
+  href: string
+  highlight: boolean
+}) {
+  return (
+    <div className={`rounded-2xl p-8 border relative overflow-hidden ${
+      highlight
+        ? 'border-blue-600/60 bg-gradient-to-b from-blue-950/60 to-slate-900/80 shadow-xl shadow-blue-500/10'
+        : 'border-slate-800 bg-slate-900/60'
+    }`}>
+      {highlight && (
+        <>
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-px bg-gradient-to-r from-transparent via-blue-500/70 to-transparent" />
+          <div className="text-xs font-semibold text-blue-400 bg-blue-950/80 border border-blue-800/60 px-3 py-1 rounded-full inline-block mb-4">
+            Más popular
+          </div>
+        </>
+      )}
+      <h3 className="text-lg font-semibold text-white mb-2">{plan}</h3>
+      <div className="flex items-baseline gap-1 mb-6">
+        <span className="text-4xl font-black text-white">{price}</span>
+        {period && <span className="text-slate-400">{period}</span>}
+      </div>
+      <ul className="space-y-3 mb-8">
+        {features.map(f => (
+          <li key={f} className="flex items-center gap-2.5 text-sm text-slate-400">
+            <CheckCircle2 className="w-4 h-4 text-cyan-500 shrink-0" />
+            {f}
+          </li>
+        ))}
+      </ul>
+      <Link href={href}>
+        <Button
+          className={`w-full rounded-full ${
+            highlight
+              ? 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+              : 'border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white'
+          }`}
+          variant={highlight ? 'default' : 'outline'}
+        >
+          {cta}
+        </Button>
+      </Link>
     </div>
   )
 }

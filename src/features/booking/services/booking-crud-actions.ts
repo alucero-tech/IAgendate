@@ -36,7 +36,7 @@ export async function getTransferAlias(): Promise<string> {
     .from('store_settings')
     .select('value')
     .eq('key', 'transfer_alias')
-    .single()
+    .maybeSingle()
   return (data?.value as string) || ''
 }
 
@@ -46,7 +46,7 @@ export async function getStorePhone(): Promise<string> {
     .from('store_settings')
     .select('value')
     .eq('key', 'phone')
-    .single()
+    .maybeSingle()
   return data?.value || ''
 }
 

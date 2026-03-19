@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CheckCircle2, XCircle, Loader2, ArrowRight, ArrowLeft, Scissors, Clock, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { CreationLoader } from '@/shared/components/creation-loader'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -43,16 +44,16 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
           <div
             className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
               i + 1 < current
-                ? 'bg-bella-rose-500 text-white'
+                ? 'bg-blue-500 text-white'
                 : i + 1 === current
-                ? 'bg-bella-rose-600 text-white shadow-lg shadow-bella-rose-200'
-                : 'bg-muted text-muted-foreground'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                : 'bg-slate-800 text-slate-500'
             }`}
           >
             {i + 1 < current ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
           </div>
           {i < total - 1 && (
-            <div className={`w-8 h-px ${i + 1 < current ? 'bg-bella-rose-400' : 'bg-border'}`} />
+            <div className={`w-8 h-px ${i + 1 < current ? 'bg-blue-500' : 'bg-slate-700'}`} />
           )}
         </div>
       ))}
@@ -82,6 +83,7 @@ export function TenantRegistrationForm() {
   const [globalError, setGlobalError] = useState('')
   const [isPending, startTransition] = useTransition()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [creationStep, setCreationStep] = useState(-1)
 
   // Auto-generate slug from name (only if user hasn't manually edited it)
   useEffect(() => {
@@ -149,6 +151,7 @@ export function TenantRegistrationForm() {
   async function handleSubmit() {
     setGlobalError('')
     setIsSubmitting(true)
+    setCreationStep(0) // "Creando tu base de datos..."
 
     const result = await registerTenant({
       name: form.name,
@@ -161,8 +164,11 @@ export function TenantRegistrationForm() {
     if (result.error) {
       setGlobalError(result.error)
       setIsSubmitting(false)
+      setCreationStep(-1)
       return
     }
+
+    setCreationStep(1) // "Configurando tu perfil..."
 
     // Sign in the newly created user
     const supabase = createClient()
@@ -174,14 +180,25 @@ export function TenantRegistrationForm() {
     if (signInError) {
       setGlobalError('Cuenta creada. Por favor iniciá sesión en /login')
       setIsSubmitting(false)
+      setCreationStep(-1)
       return
     }
+
+    setCreationStep(2) // "Activando tu sistema..."
+
+    // Small pause so user sees the final step complete before redirect
+    await new Promise(r => setTimeout(r, 600))
 
     // Redirect to new tenant's dashboard
     router.push(`/${result.slug}/admin/dashboard`)
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
+
+  // Show creation loader while submitting
+  if (isSubmitting) {
+    return <CreationLoader activeStep={creationStep} />
+  }
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -191,7 +208,7 @@ export function TenantRegistrationForm() {
       {step === 1 && (
         <div className="space-y-5">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Tu negocio</h2>
+            <h2 className="text-2xl font-bold text-white">Tu negocio</h2>
             <p className="text-muted-foreground text-sm mt-1">¿Cómo se llama tu salón o peluquería?</p>
           </div>
 
@@ -236,7 +253,7 @@ export function TenantRegistrationForm() {
           <Button
             onClick={next}
             disabled={slugAvailable === null && form.slug.length >= 3}
-            className="w-full bg-bella-rose-600 hover:bg-bella-rose-700"
+            className="w-full bg-blue-600 hover:bg-blue-700"
           >
             Continuar
             <ArrowRight className="w-4 h-4 ml-2" />
@@ -248,7 +265,7 @@ export function TenantRegistrationForm() {
       {step === 2 && (
         <div className="space-y-5">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Tu cuenta</h2>
+            <h2 className="text-2xl font-bold text-white">Tu cuenta</h2>
             <p className="text-muted-foreground text-sm mt-1">Con esto accedés al panel de administración</p>
           </div>
 
@@ -295,7 +312,7 @@ export function TenantRegistrationForm() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Atrás
             </Button>
-            <Button onClick={next} className="flex-1 bg-bella-rose-600 hover:bg-bella-rose-700">
+            <Button onClick={next} className="flex-1 bg-blue-600 hover:bg-blue-700">
               Continuar
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -307,19 +324,19 @@ export function TenantRegistrationForm() {
       {step === 3 && (
         <div className="space-y-5">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Listo para empezar</h2>
+            <h2 className="text-2xl font-bold text-white">Listo para empezar</h2>
             <p className="text-muted-foreground text-sm mt-1">14 días gratis · Sin tarjeta de crédito</p>
           </div>
 
           {/* Summary card */}
-          <div className="mesh-gradient-card rounded-2xl border border-border/50 p-5 space-y-3">
+          <div className="bg-slate-800/60 rounded-2xl border border-slate-700/50 p-5 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Negocio</span>
-              <span className="font-semibold">{form.name}</span>
+              <span className="font-semibold text-white">{form.name}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">URL</span>
-              <span className="font-mono text-sm text-bella-rose-600">/{form.slug}</span>
+              <span className="font-mono text-sm text-blue-400">/{form.slug}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Admin</span>
@@ -327,22 +344,22 @@ export function TenantRegistrationForm() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Plan</span>
-              <span className="text-sm font-medium text-bella-violet-600">Trial — 14 días</span>
+              <span className="text-sm font-medium text-cyan-400">Trial — 14 días</span>
             </div>
           </div>
 
           {/* Features included */}
           <div className="grid grid-cols-3 gap-3 text-center text-xs text-muted-foreground">
             <div className="space-y-1">
-              <Scissors className="w-5 h-5 mx-auto text-bella-rose-500" />
+              <Scissors className="w-5 h-5 mx-auto text-blue-400" />
               <p>Reservas online</p>
             </div>
             <div className="space-y-1">
-              <Users className="w-5 h-5 mx-auto text-bella-violet-500" />
+              <Users className="w-5 h-5 mx-auto text-cyan-400" />
               <p>Profesionales</p>
             </div>
             <div className="space-y-1">
-              <Clock className="w-5 h-5 mx-auto text-bella-gold-500" />
+              <Clock className="w-5 h-5 mx-auto text-blue-300" />
               <p>Calendario</p>
             </div>
           </div>
@@ -361,7 +378,7 @@ export function TenantRegistrationForm() {
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="flex-1 bg-bella-rose-600 hover:bg-bella-rose-700"
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
             >
               {isSubmitting
                 ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creando...</>

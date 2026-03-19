@@ -1,8 +1,9 @@
-# IAgendate - Sistema de Reservas para Bella Donna
+# IAgendate — SaaS Multi-Tenant de Reservas para Salones de Belleza
 
-> **Proyecto:** Sistema de reservas online + PWA para peluquería "Bella Donna"
+> **Proyecto:** SaaS B2B multi-tenant. Cada salón (tenant) tiene su sistema de reservas online + PWA.
 > **Stack:** Next.js 16 + React 19 + Supabase + Tailwind/shadcn + Mercado Pago
-> **Estado:** Producción (deploy en Vercel, auto-deploy en push a master)
+> **URL producción:** https://iagendate.vercel.app (auto-deploy en push a master)
+> **Tenant demo:** bella-donna (slug: `bella-donna`)
 
 ---
 
@@ -17,9 +18,35 @@ Tu haces TODO. El solo aprueba.
 
 ---
 
+## Arquitectura de Usuarios (CRÍTICO — leer antes de implementar cualquier feature)
+
+IAgendate tiene **dos tipos de usuario con objetivos radicalmente distintos**. Antes de tocar cualquier componente, identificá a cuál sirve.
+
+### Usuario B2B — Tenant Admin (Dueña/Admin del salón)
+- **Quién es:** La dueña del salón que paga la suscripción a IAgendate.
+- **Qué busca:** Control, automatización, prestigio. Quiere configurar su negocio y ver métricas.
+- **Rutas:** `/registro`, `/login`, `/[slug]/admin/*`
+- **Prioridad de UX:** Conversión, claridad, sensación de poder.
+- **Branding que ve:** Identidad de IAgendate (Dark Tech: `#030711` + azul eléctrico) durante adquisición (`/registro`). Sus propios colores de marca una vez dentro del admin.
+- **Time-to-Value objetivo:** ≤ 60 segundos desde "Crear mi sala" hasta ver su dashboard operativo.
+
+### Usuario B2C — End-User (Clienta del salón)
+- **Quién es:** La clienta que va a cortarse el pelo. No tiene cuenta en IAgendate.
+- **Qué busca:** Velocidad, simplicidad, claridad. Solo quiere reservar en 3 clics.
+- **Rutas:** `/[slug]/reservar`, `/[slug]/mi-turno`, `/[slug]/reagendar`
+- **Prioridad de UX:** Velocidad de flujo, confianza, feedback claro de confirmación.
+- **Branding que ve:** Los colores que eligió la dueña del salón (CSS vars dinámicas vía `[slug]/layout.tsx`).
+- **Regla de oro:** No requiere registro. Nombre + celular es suficiente.
+
+### Pregunta de control antes de implementar
+> "¿Esta funcionalidad beneficia al Tenant Admin (configura/administra) o al End-User (reserva/consulta)?"
+> Si no podés responder esto, pedí más contexto antes de escribir código.
+
+---
+
 ## Contexto de Negocio
 
-Peluquería con 6 profesionales. Las clientas reservan sin registrarse (nombre + celular), eligen especialidad → tratamiento → día → horario, pagan 50% de seña (Mercado Pago o transferencia). Cada profesional ve solo su calendario. La dueña administra todo, configura comisiones, aprueba bloqueos y gestiona liquidaciones semanales.
+Plataforma SaaS donde cada tenant es un salón de belleza. El tenant demo es "Bella Donna" (6 profesionales). Las clientas reservan sin registrarse (nombre + celular), eligen especialidad → tratamiento → día → horario, pagan 50% de seña (Mercado Pago o transferencia). Cada profesional ve solo su calendario. La dueña administra todo, configura comisiones, aprueba bloqueos y gestiona liquidaciones semanales.
 
 **3 roles:** Clienta (sin login), Profesional (login), Dueña/Admin (login)
 
@@ -152,11 +179,36 @@ Toda la lógica de UI client-side vive en `features/*/components/`. Los page.tsx
 - **NO** crear componentes `*-client.tsx` dentro de `src/app/`. Van en `features/[dominio]/components/`.
 - Cada ruta crítica tiene `error.tsx` (7 rutas) y las principales tienen `loading.tsx` (3 rutas).
 
-### Design System: Gradient Mesh (Bella Donna)
-Colores custom en `tailwind.config.ts`:
-- `bella-rose` (rosa, primario)
-- `bella-violet` (violeta, secundario)
+### Design System: Dos capas de branding
+
+**Capa 1 — Plataforma IAgendate (Dark Tech)**
+Rutas: `/`, `/registro`, `/login`, `/superadmin/*`
+Paleta fija: fondo `#030711`, acentos `blue-500`/`cyan-500`, texto `slate-50`/`slate-400`.
+NUNCA usar bella-rose en estas rutas. Son la cara de IAgendate, no del salón.
+
+**Capa 2 — Tenant (Branding Dinámico)**
+Rutas: `/[slug]/*` (reservar, admin, mi-turno, reagendar)
+`[slug]/layout.tsx` inyecta CSS vars: `--brand-primary` y `--brand-accent` desde `store_settings`.
+Tailwind tokens disponibles: `bg-brand-primary`, `text-brand-primary`, `bg-brand-accent`.
+Default bella-donna: `--brand-primary: #ec4899` (rosa) y `--brand-accent: #8b5cf6` (violeta).
+La dueña configura sus colores en `/admin/configuracion` → sección "Identidad visual".
+
+**Colores custom en `tailwind.config.ts`:**
+- `bella-rose` (rosa, primario de tenant por defecto)
+- `bella-violet` (violeta, secundario de tenant por defecto)
 - `bella-gold` (dorado, acento)
+- `brand.primary` / `brand.accent` (CSS vars dinámicas — usar en componentes de tenant)
+
+### Matriz de Branding (referencia rápida)
+| Ruta | Tipo | Branding |
+|---|---|---|
+| `/` | Plataforma | Dark Tech fijo |
+| `/registro`, `/login` | Plataforma | Dark Tech fijo |
+| `/superadmin/*` | Plataforma | Dark Tech fijo |
+| `/[slug]/reservar` | Tenant | CSS vars dinámicas |
+| `/[slug]/admin/*` | Tenant | CSS vars dinámicas |
+| `/[slug]/mi-turno` | Tenant | CSS vars dinámicas |
+| `/[slug]/reagendar` | Tenant | CSS vars dinámicas |
 
 ---
 
@@ -322,6 +374,28 @@ npm run start        # Servidor producción
 - **Fix**: `shared/schemas/zod-schemas.ts` como fuente de verdad. Cobertura ~85%.
 - **Patrón**: `const parsed = schema.safeParse(input); if (!parsed.success) return { error: ... }`
 - **Regla**: Toda nueva server action o API route DEBE importar schemas de `zod-schemas.ts`.
+
+### 2026-03-19: Landing de plataforma vs landing de tenant
+- **Decisión**: `src/app/page.tsx` es la landing de IAgendate (B2B). NO es la landing del salón.
+- **Fix**: Reemplazado de página dinámica con DB calls a página estática con Dark Tech.
+- **Regla**: `src/app/page.tsx` NUNCA llama a `getStoreBranding()` ni a ninguna función de tenant.
+
+### 2026-03-19: Branding dinámico por tenant — arquitectura
+- **Implementado**: `[slug]/layout.tsx` inyecta `--brand-primary` y `--brand-accent` server-side.
+- **Sin FOUC**: Las CSS vars llegan en el HTML inicial, no via JS. Verificado con HTTP response body.
+- **Colores en DB**: `store_settings` (key-value con `tenant_id`) almacena `primary_color` y `accent_color`.
+- **Validación**: `hexColorSchema` y `brandColorsSchema` en `zod-schemas.ts` blindan el input.
+- **Regla**: Componentes en rutas tenant PUEDEN usar `bg-brand-primary` / `text-brand-accent`. Componentes en rutas de plataforma NO DEBEN usarlos (usan blue-500/slate-*).
+
+### 2026-03-19: Consistencia visual plataforma
+- **Decisión**: `/registro` y `/login` son rutas de plataforma (adquisición B2B). Usan Dark Tech.
+- **Razón**: El dueño del salón aún "está en casa de IAgendate". Sus colores aparecen después del onboarding.
+- **Regla**: NUNCA usar `mesh-gradient-bg` o `bella-rose` en rutas de plataforma (`/registro`, `/login`, `/superadmin`).
+
+### 2026-03-19: Loading state narrativo en onboarding
+- **Implementado**: `CreationLoader` en `tenant-registration-form.tsx` muestra 3 pasos progresivos.
+- **Patrón**: Para operaciones multi-step > 2 segundos, mostrar progress steps con íconos y estado visual.
+- **Razón**: Transforma latencia técnica en narrativa de creación. Reduce abandono percibido.
 
 ---
 

@@ -8,29 +8,36 @@ export const metadata = {
 
 export default function RegistroPage() {
   return (
-    <div className="min-h-screen mesh-gradient-bg relative overflow-hidden">
-      {/* Blobs */}
-      <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-bella-rose-300 rounded-full blur-[150px] opacity-25 animate-blob" />
-      <div className="absolute bottom-0 right-1/4 w-[350px] h-[350px] bg-bella-violet-300 rounded-full blur-[150px] opacity-20 animate-blob animation-delay-2000" />
+    <div className="min-h-screen bg-[#030711] relative overflow-hidden text-slate-50">
+      {/* Blobs dark tech */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600 rounded-full blur-[200px] opacity-10 animate-blob" />
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-cyan-500 rounded-full blur-[200px] opacity-8 animate-blob animation-delay-2000" />
 
       <div className="relative z-10 max-w-md mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-10">
           <Link href="/" className="inline-block mb-6">
-            <h1 className="text-3xl font-bold text-bella-rose-600">IAgendate</h1>
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <span className="text-2xl font-bold text-white">IAgendate</span>
+            </div>
           </Link>
-          <p className="text-muted-foreground text-sm">Sistema de reservas para tu negocio</p>
+          <p className="text-slate-400 text-sm">Sistema de reservas para tu negocio</p>
         </div>
 
         {/* Card */}
-        <div className="mesh-gradient-card rounded-2xl border border-border/50 backdrop-blur-sm p-8">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl backdrop-blur-sm p-8 shadow-xl">
           <TenantRegistrationForm />
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground mt-6">
+        <p className="text-center text-xs text-slate-500 mt-6">
           ¿Ya tenés cuenta?{' '}
-          <Link href="/login" className="text-bella-rose-600 hover:underline font-medium">
+          <Link href="/login" className="text-blue-400 hover:text-blue-300 hover:underline font-medium transition-colors">
             Iniciá sesión
           </Link>
         </p>

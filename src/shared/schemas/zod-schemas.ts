@@ -126,6 +126,17 @@ export const updateDepositPercentageSchema = z.object({
   percentage: z.number().int().min(10).max(90),
 })
 
+/** Color HEX de 6 dígitos — ej: #ec4899 */
+export const hexColorSchema = z.string().regex(
+  /^#[0-9a-fA-F]{6}$/,
+  'Color inválido (esperado: #RRGGBB)'
+)
+
+export const brandColorsSchema = z.object({
+  primary_color: hexColorSchema,
+  accent_color: hexColorSchema,
+})
+
 // ========== SCHEMAS POR DOMINIO: PROFESSIONALS ==========
 
 export const updateProfessionalRoleSchema = z.object({

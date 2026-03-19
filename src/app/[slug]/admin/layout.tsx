@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getCurrentProfessional } from '@/features/auth/services/auth-actions'
 import { getStoreBranding } from '@/features/settings/services/settings-actions'
 import { getStorePhone } from '@/features/booking/services/booking-actions'
@@ -7,6 +8,7 @@ import { Sidebar } from '@/shared/components/sidebar'
 import { ContactButtons } from '@/shared/components/contact-buttons'
 import { PushAutoRegister } from '@/shared/components/push-auto-register'
 import { BiometricSetup } from '@/shared/components/biometric-setup'
+import { PlanExpiryBanner } from '@/features/admin/components/plan-expiry-banner'
 
 export default async function MainLayout({
   children,
@@ -36,6 +38,18 @@ export default async function MainLayout({
     redirect('/login')
   }
 
+  // Leer plan_expires_at solo para owner (evita query innecesaria para otros roles)
+  let planExpiresAt: string | null = null
+  if (professional.is_owner) {
+    const admin = createAdminClient()
+    const { data: tenant } = await admin
+      .from('tenants')
+      .select('plan_expires_at')
+      .eq('id', professional.tenant_id)
+      .single()
+    planExpiresAt = tenant?.plan_expires_at ?? null
+  }
+
   return (
     <div className="min-h-screen flex">
       <Sidebar
@@ -47,6 +61,9 @@ export default async function MainLayout({
         slug={slug}
       />
       <main className="flex-1 overflow-auto">
+        {professional.is_owner && (
+          <PlanExpiryBanner planExpiresAt={planExpiresAt} slug={slug} />
+        )}
         <div className="pt-16 lg:pt-0 px-4 pb-6 lg:p-6 max-w-7xl mx-auto">
           {children}
         </div>

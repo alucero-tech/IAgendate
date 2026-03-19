@@ -3,8 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
-import { getTenantPath, getCurrentTenantSlug } from '@/lib/tenant'
-import { updateDepositPercentageSchema } from '@/shared/schemas/zod-schemas'
+import { getTenantPath, getTenantPublicPath, getCurrentTenantSlug, getTenantId } from '@/lib/tenant'
+import { updateDepositPercentageSchema, brandColorsSchema } from '@/shared/schemas/zod-schemas'
 
 export interface StoreSettings {
   store_name: string
@@ -17,6 +17,8 @@ export interface StoreSettings {
   transfer_bank: string
   transfer_holder: string
   cancellation_policy: string
+  primary_color: string
+  accent_color: string
 }
 
 const DEFAULTS: StoreSettings = {
@@ -30,6 +32,49 @@ const DEFAULTS: StoreSettings = {
   transfer_bank: '',
   transfer_holder: '',
   cancellation_policy: 'Podés reagendar tu turno 1 vez sin costo. Si reagendás una segunda vez, perdés la reserva y la seña.',
+  primary_color: '#ec4899',
+  accent_color: '#8b5cf6',
+}
+
+export interface TenantBranding {
+  name: string
+  logoUrl: string
+  primaryColor: string
+  accentColor: string
+}
+
+/**
+ * Retorna los datos de branding de un tenant por slug.
+ * Usado en [slug]/layout.tsx para inyectar CSS vars dinámicas.
+ */
+export async function getTenantBranding(slug: string): Promise<TenantBranding> {
+  const defaults: TenantBranding = {
+    name: DEFAULTS.store_name,
+    logoUrl: '',
+    primaryColor: DEFAULTS.primary_color,
+    accentColor: DEFAULTS.accent_color,
+  }
+
+  const tenantId = await getTenantId(slug)
+  if (!tenantId) return defaults
+
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from('store_settings')
+    .select('key, value')
+    .eq('tenant_id', tenantId)
+    .in('key', ['store_name', 'logo_url', 'primary_color', 'accent_color'])
+
+  if (!data) return defaults
+
+  const result = { ...defaults }
+  for (const row of data) {
+    if (row.key === 'store_name' && row.value) result.name = row.value
+    if (row.key === 'logo_url' && row.value) result.logoUrl = row.value
+    if (row.key === 'primary_color' && row.value) result.primaryColor = row.value
+    if (row.key === 'accent_color' && row.value) result.accentColor = row.value
+  }
+  return result
 }
 
 export async function getStoreSettings(): Promise<StoreSettings> {
@@ -155,6 +200,13 @@ export async function updateDepositPercentage(percentage: number) {
 }
 
 export async function updateStoreSettings(settings: StoreSettings) {
+  // Validar colores HEX antes de persistir
+  const colorsCheck = brandColorsSchema.safeParse({
+    primary_color: settings.primary_color,
+    accent_color: settings.accent_color,
+  })
+  if (!colorsCheck.success) return { error: colorsCheck.error.issues[0].message }
+
   const supabase = await createClient()
 
   const entries = Object.entries(settings) as [string, string][]
@@ -184,6 +236,10 @@ export async function updateStoreSettings(settings: StoreSettings) {
   }
 
   const slug = await getCurrentTenantSlug()
+  // Revalidar admin + todas las rutas públicas del tenant (layout raíz aplica branding)
   revalidatePath(getTenantPath(slug, '/configuracion'))
+  revalidatePath(getTenantPublicPath(slug, '/reservar'))
+  revalidatePath(getTenantPublicPath(slug, '/mi-turno'))
+  revalidatePath(getTenantPublicPath(slug, '/reagendar'))
   return { success: true }
 }

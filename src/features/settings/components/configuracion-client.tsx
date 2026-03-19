@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { updateStoreSettings, updateDepositPercentage, uploadLogo, type StoreSettings } from '@/features/settings/services/settings-actions'
-import { Settings, Save, Store, CreditCard, FileText, ImagePlus } from 'lucide-react'
+import { Settings, Save, Store, CreditCard, FileText, ImagePlus, Palette } from 'lucide-react'
 import { ExcelUpload } from '@/features/excel/components/excel-upload'
 import Image from 'next/image'
 
@@ -226,6 +226,85 @@ export function ConfiguracionClient({ initialSettings, initialDepositPct = 50 }:
               placeholder="Nombre del titular"
             />
           </div>
+        </div>
+      </div>
+
+      {/* Marca / Colores */}
+      <div className="mesh-gradient-card rounded-2xl border border-border/50 p-6 space-y-4">
+        <h2 className="font-semibold flex items-center gap-2">
+          <Palette className="h-5 w-5 text-bella-violet-500" />
+          Identidad visual
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Elegí los colores de tu marca. Se aplican en el wizard de reservas y el panel de administración.
+        </p>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-3">
+            <Label>Color principal</Label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={settings.primary_color}
+                onChange={e => update('primary_color', e.target.value)}
+                className="w-10 h-10 rounded-lg border border-border cursor-pointer bg-transparent p-0.5"
+              />
+              <Input
+                value={settings.primary_color}
+                onChange={e => update('primary_color', e.target.value)}
+                placeholder="#ec4899"
+                className="font-mono text-sm"
+                maxLength={7}
+              />
+            </div>
+            <div
+              className="h-8 rounded-lg border border-border/50 transition-colors"
+              style={{ backgroundColor: settings.primary_color }}
+            />
+          </div>
+          <div className="space-y-3">
+            <Label>Color de acento</Label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={settings.accent_color}
+                onChange={e => update('accent_color', e.target.value)}
+                className="w-10 h-10 rounded-lg border border-border cursor-pointer bg-transparent p-0.5"
+              />
+              <Input
+                value={settings.accent_color}
+                onChange={e => update('accent_color', e.target.value)}
+                placeholder="#8b5cf6"
+                className="font-mono text-sm"
+                maxLength={7}
+              />
+            </div>
+            <div
+              className="h-8 rounded-lg border border-border/50 transition-colors"
+              style={{ backgroundColor: settings.accent_color }}
+            />
+          </div>
+        </div>
+        <div className="flex gap-3 flex-wrap pt-1">
+          {[
+            { label: 'Rosa', primary: '#ec4899', accent: '#8b5cf6' },
+            { label: 'Violeta', primary: '#8b5cf6', accent: '#06b6d4' },
+            { label: 'Azul IA', primary: '#3b82f6', accent: '#06b6d4' },
+            { label: 'Verde', primary: '#10b981', accent: '#f59e0b' },
+            { label: 'Naranja', primary: '#f97316', accent: '#ef4444' },
+          ].map(preset => (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => {
+                update('primary_color', preset.primary)
+                update('accent_color', preset.accent)
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border text-xs hover:bg-muted/50 transition-colors"
+            >
+              <span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: preset.primary }} />
+              {preset.label}
+            </button>
+          ))}
         </div>
       </div>
 

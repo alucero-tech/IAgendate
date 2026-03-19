@@ -1,15 +1,20 @@
 import { getCurrentProfessional } from '@/features/auth/services/auth-actions'
-import { getDashboardStats } from '@/features/dashboard/services/dashboard-actions'
+import { getDashboardStats, getOnboardingStatus } from '@/features/dashboard/services/dashboard-actions'
+import { OnboardingChecklist } from '@/features/dashboard/components/onboarding-checklist'
 import { Calendar, Clock, Users, DollarSign } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { DailySummary } from '@/features/ai-assistant/components/daily-summary'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const professional = await getCurrentProfessional()
   if (!professional) return null
 
-  const stats = await getDashboardStats(professional.id, professional.is_owner)
+  const [stats, onboarding] = await Promise.all([
+    getDashboardStats(professional.id, professional.is_owner),
+    professional.is_owner ? getOnboardingStatus(professional.tenant_id) : null,
+  ])
 
   const today = format(new Date(), 'yyyy-MM-dd')
   const nextTurnValue = stats.nextTurn
@@ -38,6 +43,15 @@ export default async function DashboardPage() {
             : 'Acá podés ver tu agenda del día'}
         </p>
       </div>
+
+      {/* Onboarding checklist — only for owner, only while setup is incomplete */}
+      {professional.is_owner && onboarding && (
+        <OnboardingChecklist
+          slug={slug}
+          hasTreatments={onboarding.hasTreatments}
+          hasSchedules={onboarding.hasSchedules}
+        />
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

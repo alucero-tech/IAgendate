@@ -74,7 +74,11 @@ function isAdminPath(segments: string[]): boolean {
 }
 
 // Rutas que no tienen tenant (plataforma global)
-const PLATFORM_ROUTES = new Set(['login', 'registro', 'superadmin', 'api', 'planes', 'cuenta-suspendida'])
+// IMPORTANTE: agregar aquí cualquier ruta raíz que NO sea un slug de tenant
+const PLATFORM_ROUTES = new Set([
+  'login', 'registro', 'superadmin', 'api', 'planes', 'cuenta-suspendida',
+  'reservar', 'mi-turno', 'reagendar', // rutas públicas de Bella Donna (legacy single-tenant)
+])
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
