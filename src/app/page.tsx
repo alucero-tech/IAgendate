@@ -15,14 +15,14 @@ import {
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
-  title: 'IAgendate — Sistema de reservas para peluquerías y salones',
+  title: 'IAgendate — Sistema de turnos para negocios de servicios',
   description:
-    'Tus clientas reservan solas, pagan la seña online y reciben recordatorios automáticos. Gestión completa de turnos, profesionales y pagos para salones de belleza argentinos.',
-  keywords: ['reservas online', 'peluquería', 'salón de belleza', 'sistema turnos', 'gestión agenda'],
+    'Tus clientes reservan solos, pagan la seña online y reciben recordatorios automáticos. Gestión completa de turnos, profesionales y pagos para cualquier negocio basado en agenda.',
+  keywords: ['reservas online', 'sistema turnos', 'gestión agenda', 'turnos online', 'cobrar seña', 'negocios de servicios'],
   openGraph: {
-    title: 'IAgendate — Reservas online para tu salón',
+    title: 'IAgendate — Terminá con el caos de WhatsApp',
     description:
-      'Sin caos de WhatsApp. Tus clientas reservan 24/7, pagan la seña y vos solo atendés.',
+      'Sin caos de WhatsApp. Tus clientes reservan 24/7, pagan la seña y vos solo atendés.',
     url: 'https://iagendate.vercel.app',
     siteName: 'IAgendate',
     locale: 'es_AR',
@@ -32,14 +32,14 @@ export const metadata: Metadata = {
         url: 'https://iagendate.vercel.app/icons/icon-512x512.png',
         width: 512,
         height: 512,
-        alt: 'IAgendate — Reservas para salones de belleza',
+        alt: 'IAgendate — Turnos online para tu negocio',
       },
     ],
   },
   twitter: {
     card: 'summary',
-    title: 'IAgendate — Reservas online para tu salón',
-    description: 'Sin caos de WhatsApp. Reservas 24/7, seña online y recordatorios automáticos.',
+    title: 'IAgendate — Terminá con el caos de WhatsApp',
+    description: 'Sin caos de WhatsApp. Turnos 24/7, seña online y recordatorios automáticos.',
   },
   metadataBase: new URL('https://iagendate.vercel.app'),
 }
@@ -73,7 +73,7 @@ export default function HomePage() {
           </Link>
           <Link href="/registro">
             <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-5 shadow-lg shadow-blue-500/25">
-              Empezar gratis
+              Activar mi negocio
             </Button>
           </Link>
         </div>
@@ -83,25 +83,25 @@ export default function HomePage() {
       <section className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-28 text-center">
         <div className="inline-flex items-center gap-2 bg-blue-950/60 border border-blue-800/60 text-blue-400 text-sm px-4 py-1.5 rounded-full mb-8 backdrop-blur-sm">
           <Zap className="w-3.5 h-3.5" />
-          Sistema de reservas para peluquerías y salones de belleza
+          Para peluquerías, estéticas, masajistas, consultorios y más
         </div>
 
         <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-[1.1] tracking-tight">
-          Tu peluquería,
+          Tu negocio,
           <span className="block bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
             sin caos de WhatsApp
           </span>
         </h1>
 
         <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-          Tus clientas reservan solas, pagan la seña online y reciben recordatorios automáticos.
-          Vos solo atendés. Sin idas y vueltas, sin turnos perdidos.
+          Tus clientes reservan solos, pagan la seña online y reciben recordatorios automáticos.
+          Vos solo atendés. Sin idas y vueltas, sin turnos perdidos, sin plata que se escapa.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/registro">
             <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-10 py-6 text-lg rounded-full shadow-xl shadow-blue-500/30 w-full sm:w-auto group transition-all hover:shadow-blue-500/50">
-              Crear mi sala gratis
+              Activar mi negocio
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
@@ -113,20 +113,20 @@ export default function HomePage() {
         </div>
 
         <p className="mt-4 text-sm text-slate-500">
-          Sin tarjeta de crédito · Configuración en 5 minutos
+          Configuración en 5 minutos · Soporte por WhatsApp
         </p>
 
         {/* Social proof */}
         <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-slate-400">
           <div className="flex items-center gap-2">
             <div className="flex -space-x-2">
-              {['🧴', '✂️', '💅', '💆'].map((emoji, i) => (
+              {['✂️', '💆', '💅', '🩺'].map((emoji, i) => (
                 <div key={i} className="w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-900 flex items-center justify-center text-sm">
                   {emoji}
                 </div>
               ))}
             </div>
-            <span>+50 salones activos</span>
+            <span>+50 negocios activos</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4 text-cyan-500" />
@@ -143,10 +143,10 @@ export default function HomePage() {
       <section id="features" className="relative z-10 max-w-6xl mx-auto px-6 py-20">
         <div className="text-center mb-14">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Todo lo que tu salón necesita
+            Todo lo que tu negocio necesita
           </h2>
           <p className="text-slate-400 text-lg max-w-xl mx-auto">
-            Diseñado específicamente para peluquerías y salones de belleza argentinos.
+            Diseñado para negocios de servicios argentinos que trabajan con turnos.
           </p>
         </div>
 
@@ -155,37 +155,37 @@ export default function HomePage() {
             icon={<Calendar className="w-5 h-5 text-blue-400" />}
             iconBg="bg-blue-950/80 border-blue-800/50"
             title="Reservas 24/7"
-            description="Las clientas reservan desde su celular a cualquier hora, sin llamadas ni mensajes de WhatsApp."
+            description="Tus clientes reservan desde el celular a cualquier hora, sin llamadas ni mensajes de WhatsApp."
           />
           <FeatureCard
             icon={<CreditCard className="w-5 h-5 text-cyan-400" />}
             iconBg="bg-cyan-950/80 border-cyan-800/50"
-            title="Seña online"
-            description="Cobrarás la seña automáticamente por Mercado Pago o transferencia bancaria. Cero impagos."
+            title="Seña online garantizada"
+            description="Cobrás la seña automáticamente por Mercado Pago o transferencia. Sin ausentismo, sin plata perdida."
           />
           <FeatureCard
             icon={<Users className="w-5 h-5 text-blue-300" />}
             iconBg="bg-blue-950/80 border-blue-800/50"
-            title="Gestión de profesionales"
-            description="Cada profesional ve solo su agenda. Comisiones, liquidaciones y rendimiento individual."
+            title="Gestión de equipo"
+            description="Cada profesional ve solo su agenda. Comisiones, liquidaciones y rendimiento individual automatizados."
           />
           <FeatureCard
             icon={<Bell className="w-5 h-5 text-cyan-400" />}
             iconBg="bg-cyan-950/80 border-cyan-800/50"
             title="Recordatorios automáticos"
-            description="Notificaciones push que reducen los no-shows. Las clientas reciben aviso antes de su turno."
+            description="Notificaciones push que eliminan los no-shows. Tus clientes reciben aviso antes de cada turno."
           />
           <FeatureCard
             icon={<BarChart3 className="w-5 h-5 text-blue-400" />}
             iconBg="bg-blue-950/80 border-blue-800/50"
             title="Métricas en tiempo real"
-            description="Dashboard con ingresos, tratamientos más vendidos y rendimiento por profesional."
+            description="Dashboard con ingresos, servicios más vendidos y rendimiento por profesional. Sabés cuánto ganás."
           />
           <FeatureCard
             icon={<Smartphone className="w-5 h-5 text-cyan-400" />}
             iconBg="bg-cyan-950/80 border-cyan-800/50"
             title="App instalable (PWA)"
-            description="Tus clientas instalan la app sin ir a la App Store. Funciona en cualquier celular."
+            description="Tus clientes instalan la app sin ir a la App Store. Funciona en cualquier celular, sin fricción."
           />
         </div>
       </section>
@@ -203,18 +203,18 @@ export default function HomePage() {
           {[
             {
               step: '01',
-              title: 'Creás tu sala',
-              desc: 'Registrás tu salón con nombre y URL única (ej: iagendate.vercel.app/mi-peluqueria). Sin tarjeta.',
+              title: 'Activás tu negocio',
+              desc: 'Registrás tu negocio con nombre y URL única (ej: iagendate.vercel.app/mi-negocio). En 5 minutos.',
             },
             {
               step: '02',
-              title: 'Configurás tus servicios',
-              desc: 'Agregás tratamientos, precios, duraciones y asignás profesionales a cada uno.',
+              title: 'Cargás tus servicios',
+              desc: 'Agregás servicios, precios, duraciones y asignás profesionales a cada uno.',
             },
             {
               step: '03',
               title: 'Compartís el link',
-              desc: 'Mandás el link de reserva por Instagram, WhatsApp o lo ponés en tu bio. Las clientas hacen el resto.',
+              desc: 'Mandás el link por Instagram, WhatsApp o lo ponés en tu bio. Tus clientes hacen el resto solos.',
             },
             {
               step: '04',
@@ -234,43 +234,37 @@ export default function HomePage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="relative z-10 max-w-4xl mx-auto px-6 py-20">
+      <section id="pricing" className="relative z-10 max-w-3xl mx-auto px-6 py-20">
         <div className="text-center mb-14">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Precio simple y transparente</h2>
-          <p className="text-slate-400 text-lg">Sin sorpresas. Sin comisiones por reserva.</p>
+          <p className="text-slate-400 text-lg">Sin sorpresas. Sin comisiones por reserva. Sin letra chica.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+        <div className="max-w-sm mx-auto">
           <PricingCard
-            plan="Básico"
-            price="Gratis"
-            period=""
-            features={[
-              'Hasta 2 profesionales',
-              'Reservas ilimitadas',
-              'Seña online',
-              'Dashboard básico',
-            ]}
-            cta="Empezar gratis"
-            href="/registro"
-            highlight={false}
-          />
-          <PricingCard
-            plan="Pro"
-            price="$9.990"
+            plan="Acceso total"
+            price="$50.000"
             period="/ mes"
             features={[
               'Profesionales ilimitados',
-              'Métricas avanzadas',
+              'Reservas y turnos ilimitados',
+              'Seña online (Mercado Pago o transferencia)',
+              'Calendario día / semana / mes',
               'Liquidaciones automáticas',
-              'Notificaciones push',
-              'Soporte prioritario',
+              'Métricas y rendimiento',
+              'Recordatorios automáticos (push)',
+              'App instalable (PWA)',
+              'Soporte por WhatsApp',
             ]}
-            cta="Activar Pro"
+            cta="Activar mi negocio"
             href="/registro"
             highlight
           />
         </div>
+
+        <p className="text-center text-sm text-slate-500 mt-6">
+          Si tu sistema te ahorra 5 horas de WhatsApp a la semana, ya se pagó solo.
+        </p>
       </section>
 
       {/* CTA Final */}
@@ -282,19 +276,19 @@ export default function HomePage() {
 
           <div className="relative z-10">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Empezá hoy, sin riesgos
+              Dejá de perder clientes por el caos de WhatsApp
             </h2>
             <p className="text-slate-400 text-lg mb-8 max-w-xl mx-auto">
-              Creá tu sala gratis y empezá a recibir reservas en minutos.
-              Si no te convence, no perdiste nada.
+              Cada turno que coordinás por chat es tiempo y plata que perdés.
+              Activá tu negocio hoy y empezá a recibir reservas en automático.
             </p>
             <Link href="/registro">
               <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-12 py-6 text-xl rounded-full shadow-xl shadow-blue-500/30 group transition-all hover:shadow-blue-500/50">
-                Crear mi sala gratis
+                Activar mi negocio ahora
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <p className="mt-4 text-sm text-slate-500">Sin tarjeta · Sin instalaciones · 5 minutos</p>
+            <p className="mt-4 text-sm text-slate-500">Configuración en 5 minutos · Soporte por WhatsApp</p>
           </div>
         </div>
       </section>
