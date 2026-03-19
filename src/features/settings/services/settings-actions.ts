@@ -94,6 +94,28 @@ export async function getStoreSettings(): Promise<StoreSettings> {
   return settings
 }
 
+/**
+ * Versión pública de getStoreSettings filtrada por tenant.
+ * Usa admin client para funcionar sin sesión (páginas públicas de salón).
+ */
+export async function getPublicStoreSettings(tenantId: string): Promise<StoreSettings> {
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from('store_settings')
+    .select('key, value')
+    .eq('tenant_id', tenantId)
+
+  if (!data || data.length === 0) return DEFAULTS
+
+  const settings = { ...DEFAULTS }
+  for (const row of data) {
+    if (row.key in settings) {
+      (settings as Record<string, string>)[row.key] = row.value || ''
+    }
+  }
+  return settings
+}
+
 export async function getStoreName(tenantId?: string): Promise<string> {
   const supabase = createAdminClient()
   let query = supabase.from('store_settings').select('value').eq('key', 'store_name')
