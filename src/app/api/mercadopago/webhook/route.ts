@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { paymentClient } from '@/lib/mercadopago'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { mpWebhookSchema } from '@/shared/schemas/zod-schemas'
 
 export async function POST(request: NextRequest) {
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const bookingId = mpPayment.external_reference
     const status = mpPayment.status // approved, pending, rejected, etc.
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     if (status === 'approved') {
       // Confirmar pago

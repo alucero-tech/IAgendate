@@ -404,9 +404,10 @@ npm run start        # Servidor producción
 ### 2026-03-19: Multi-tenant booking — aislamiento completo (PRP-009)
 - **Implementado**: Todas las server actions públicas de catálogo, disponibilidad y booking filtran por `tenant_id`.
 - **Patrón**: `page.tsx` resuelve `tenantId = await getTenantId(slug)` una vez. Lo pasa en cascada como prop/parámetro explícito. NUNCA lo resuelve internamente en las actions públicas.
-- **`replace_all: true` peligroso**: Al reemplazar URLs hardcodeadas globalmente, verificar que el binding de `slug` exista en TODOS los contextos donde aparece. En funciones sin `slug` en scope, el error es silencioso en runtime pero falla en typecheck.
+- **`replace_all: true` peligroso**: Al reemplazar strings que contienen variables (como `/${slug}/ruta`), NUNCA usar `replace_all: true` globalmente. Hacerlo puede introducir referencias a `slug` en funciones donde no está en scope — el error es silencioso en runtime pero falla en typecheck. Regla de Oro: `replace_all` solo para strings literales sin interpolación de variables.
 - **`.maybeSingle()` vs `.single()`**: Usar `.maybeSingle()` en queries que pueden no devolver fila (settings key-value, cliente por teléfono). `.single()` solo cuando la fila SIEMPRE existe.
 - **`getStoreName(tenantId?)`**: Hecha opcional para mantener compatibilidad con rutas de plataforma (login) que no tienen contexto de tenant.
+- **`getStoreBranding()` deprecada**: Reemplazada por `getTenantBranding(slug)` en `[slug]/page.tsx` y `[slug]/admin/layout.tsx`. `getStoreBranding()` no filtraba por `tenant_id`. NUNCA usar `getStoreBranding()` en rutas de tenant.
 
 ---
 

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Scissors, Clock, MapPin, Phone, Instagram, CreditCard, CalendarCheck, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { getStoreSettings, getStoreBranding } from '@/features/settings/services/settings-actions'
+import { getStoreSettings, getTenantBranding } from '@/features/settings/services/settings-actions'
 import { getAllTreatmentsGrouped, getStorePhone, getDepositPercentage } from '@/features/booking/services/booking-actions'
 import { ContactButtons } from '@/shared/components/contact-buttons'
 import { InstallBanner } from '@/shared/components/install-banner'
@@ -12,7 +12,7 @@ export default async function SalonPage({ params }: { params: Promise<{ slug: st
   const { getTenantId } = await import('@/lib/tenant')
   const tenantId = (await getTenantId(slug)) ?? ''
   const [branding, settings, categories, storePhone, depositPct] = await Promise.all([
-    getStoreBranding(),
+    getTenantBranding(slug),
     getStoreSettings(),
     getAllTreatmentsGrouped(tenantId),
     getStorePhone(tenantId),

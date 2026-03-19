@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getCurrentProfessional } from '@/features/auth/services/auth-actions'
-import { getStoreBranding } from '@/features/settings/services/settings-actions'
+import { getTenantBranding } from '@/features/settings/services/settings-actions'
 import { getStorePhone } from '@/features/booking/services/booking-actions'
 import { Sidebar } from '@/shared/components/sidebar'
 import { ContactButtons } from '@/shared/components/contact-buttons'
@@ -28,7 +28,7 @@ export default async function MainLayout({
 
   const [professional, branding] = await Promise.all([
     getCurrentProfessional(),
-    getStoreBranding(),
+    getTenantBranding(slug),
   ])
 
   // Si hay sesión pero no tiene registro de profesional, cerrar sesión y redirigir
