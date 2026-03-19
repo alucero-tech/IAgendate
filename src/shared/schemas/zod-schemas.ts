@@ -193,11 +193,14 @@ export const mpWebhookSchema = z.object({
 
 // ========== TENANT REGISTRATION ==========
 
+const RESERVED_SLUGS = new Set(['login', 'registro', 'superadmin', 'api', 'planes', 'cuenta-suspendida', 'admin', 'www', 'app', 'mail', 'static'])
+
 /** Slug de tenant: minúsculas, números y guiones, 3-50 caracteres */
 export const tenantSlugSchema = z.string()
   .min(3, 'El slug debe tener al menos 3 caracteres')
   .max(50, 'El slug no puede superar los 50 caracteres')
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Solo letras minúsculas, números y guiones (ej: mi-salon)')
+  .refine(s => !RESERVED_SLUGS.has(s), 'Ese nombre no está disponible')
 
 /** Paso 1: nombre del negocio + slug */
 export const tenantStep1Schema = z.object({
