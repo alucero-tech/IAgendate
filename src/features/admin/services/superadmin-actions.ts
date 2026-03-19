@@ -122,3 +122,16 @@ export async function getAllTenants() {
   if (error) return []
   return data ?? []
 }
+
+// ── Recent webhook logs ───────────────────────────────────────────────────────
+
+export async function getRecentWebhookLogs(limit = 20) {
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from('webhook_logs')
+    .select('id, event_type, event_id, tenant_id, status, error_message, created_at')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  return data ?? []
+}

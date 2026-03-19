@@ -1,8 +1,8 @@
-import { getAllTenants } from '@/features/admin/services/superadmin-actions'
+import { getAllTenants, getRecentWebhookLogs } from '@/features/admin/services/superadmin-actions'
 import { TenantActions } from '@/features/admin/components/tenant-actions'
 import { format, differenceInDays } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { CheckCircle2, Clock, AlertTriangle, XCircle, Users } from 'lucide-react'
+import { CheckCircle2, Clock, AlertTriangle, XCircle, Users, Webhook } from 'lucide-react'
 
 const PLAN_LABELS: Record<string, string> = {
   trial: 'Trial',
@@ -43,8 +43,15 @@ function ExpiryBadge({ expiresAt }: { expiresAt: string | null }) {
   return <span className="text-gray-400 text-xs">{formatted}</span>
 }
 
+const LOG_STATUS_STYLE: Record<string, string> = {
+  processed: 'bg-green-900/40 text-green-400',
+  error: 'bg-red-900/40 text-red-400',
+  ignored: 'bg-gray-800 text-gray-500',
+  received: 'bg-blue-900/40 text-blue-400',
+}
+
 export default async function SuperadminPage() {
-  const tenants = await getAllTenants()
+  const [tenants, webhookLogs] = await Promise.all([getAllTenants(), getRecentWebhookLogs(20)])
 
   const stats = {
     total: tenants.length,
@@ -153,6 +160,57 @@ export default async function SuperadminPage() {
                     </tr>
                   )
                 })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Webhook logs */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-800 flex items-center gap-2">
+          <Webhook className="w-4 h-4 text-gray-400" />
+          <h3 className="font-semibold text-sm text-gray-200">Webhook logs MP (últimos 20)</h3>
+        </div>
+
+        {webhookLogs.length === 0 ? (
+          <div className="py-10 text-center text-gray-600 text-sm">
+            Aún no se recibieron webhooks.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-gray-800 text-gray-600 uppercase tracking-wider">
+                  <th className="text-left px-5 py-3">Evento</th>
+                  <th className="text-left px-4 py-3">ID MP</th>
+                  <th className="text-left px-4 py-3">Estado</th>
+                  <th className="text-left px-4 py-3">Error</th>
+                  <th className="text-left px-4 py-3">Fecha</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800/50">
+                {webhookLogs.map((log) => (
+                  <tr key={log.id} className="hover:bg-gray-800/20">
+                    <td className="px-5 py-3 font-mono text-gray-400">{log.event_type ?? '—'}</td>
+                    <td className="px-4 py-3 font-mono text-gray-500">
+                      {log.event_id ? log.event_id.substring(0, 16) + '…' : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${LOG_STATUS_STYLE[log.status] ?? 'bg-gray-800 text-gray-400'}`}>
+                        {log.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-red-400 max-w-xs truncate">
+                      {log.error_message ?? <span className="text-gray-700">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {log.created_at
+                        ? format(new Date(log.created_at), "d MMM HH:mm", { locale: es })
+                        : '—'}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
