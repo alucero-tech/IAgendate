@@ -1,4 +1,4 @@
-import { getPublicCategories, getStorePhone, getDepositPercentage } from '@/features/booking/services/booking-actions'
+import { getPublicCategories, getStorePhone, getDepositPercentage, getTransferAlias } from '@/features/booking/services/booking-actions'
 import { getStoreName } from '@/features/settings/services/settings-actions'
 import { BookingWizard } from '@/features/booking/components/booking-wizard'
 import { InstallBanner } from '@/shared/components/install-banner'
@@ -6,11 +6,12 @@ import { ContactButtons } from '@/shared/components/contact-buttons'
 import { ChatWidget } from '@/features/ai-assistant/components/chat-widget'
 
 export default async function ReservarPage() {
-  const [categories, storeName, storePhone, depositPct] = await Promise.all([
+  const [categories, storeName, storePhone, depositPct, transferAlias] = await Promise.all([
     getPublicCategories(),
     getStoreName(),
     getStorePhone(),
     getDepositPercentage(),
+    getTransferAlias(),
   ])
 
   return (
@@ -26,7 +27,7 @@ export default async function ReservarPage() {
           <p className="text-muted-foreground mt-1">Reservá tu turno</p>
         </div>
 
-        <BookingWizard categories={categories} depositPercentage={depositPct} />
+        <BookingWizard categories={categories} depositPercentage={depositPct} transferAlias={transferAlias} />
       </div>
 
       <InstallBanner />

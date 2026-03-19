@@ -30,6 +30,16 @@ export async function getDepositPercentage(): Promise<number> {
   return pct
 }
 
+export async function getTransferAlias(): Promise<string> {
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from('store_settings')
+    .select('value')
+    .eq('key', 'transfer_alias')
+    .single()
+  return (data?.value as string) || ''
+}
+
 export async function getStorePhone(): Promise<string> {
   const supabase = createAdminClient()
   const { data } = await supabase

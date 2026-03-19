@@ -46,9 +46,9 @@ type CartItem = {
   price: number
 }
 
-type Step = 'services' | 'professionals' | 'datetime' | 'info' | 'confirm' | 'success'
+type Step = 'services' | 'professionals' | 'datetime' | 'info' | 'payment' | 'confirm' | 'success'
 
-export function BookingWizard({ categories, depositPercentage = 50 }: { categories: Category[]; depositPercentage?: number }) {
+export function BookingWizard({ categories, depositPercentage = 50, transferAlias = '' }: { categories: Category[]; depositPercentage?: number; transferAlias?: string }) {
   const [step, setStep] = useState<Step>('services')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -170,7 +170,7 @@ export function BookingWizard({ categories, depositPercentage = 50 }: { categori
     setStep('info')
   }
 
-  function goToConfirm() {
+  function goToPayment() {
     if (!firstName || !lastName || !phone) {
       setError('Completá nombre, apellido y celular')
       return
@@ -179,6 +179,11 @@ export function BookingWizard({ categories, depositPercentage = 50 }: { categori
       setError('El celular debe tener 10 dígitos (ej: 1122334455)')
       return
     }
+    setError(null)
+    setStep('payment')
+  }
+
+  function goToConfirm() {
     setError(null)
     setStep('confirm')
   }
@@ -240,7 +245,7 @@ export function BookingWizard({ categories, depositPercentage = 50 }: { categori
   }
 
   function goBack() {
-    const stepOrder: Step[] = ['services', 'professionals', 'datetime', 'info', 'confirm']
+    const stepOrder: Step[] = ['services', 'professionals', 'datetime', 'info', 'payment', 'confirm']
     const currentIdx = stepOrder.indexOf(step)
     if (step === 'professionals') {
       setPendingTreatment(null)
@@ -255,7 +260,7 @@ export function BookingWizard({ categories, depositPercentage = 50 }: { categori
   const totalDuration = cart.reduce((sum, i) => sum + i.durationMinutes, 0)
 
   const stepNumber = {
-    services: 1, professionals: 2, datetime: 3, info: 4, confirm: 5, success: 6
+    services: 1, professionals: 2, datetime: 3, info: 4, payment: 5, confirm: 6, success: 7
   }[step]
 
   // Load treatments on mount
@@ -276,7 +281,7 @@ export function BookingWizard({ categories, depositPercentage = 50 }: { categori
             </Button>
           )}
           <div className="flex-1 flex gap-1">
-            {[1, 2, 3, 4, 5].map(n => (
+            {[1, 2, 3, 4, 5, 6].map(n => (
               <div
                 key={n}
                 className={`h-1.5 flex-1 rounded-full transition-colors ${
@@ -561,37 +566,90 @@ export function BookingWizard({ categories, depositPercentage = 50 }: { categori
             </div>
           </div>
 
-          {/* Payment method */}
-          <div className="space-y-2">
-            <p className="text-sm font-medium flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-bella-gold-500" />
-              Método de pago de la seña
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setPaymentMethod('mercadopago')}
-                className={`rounded-xl border p-4 text-center transition-colors ${
-                  paymentMethod === 'mercadopago'
-                    ? 'border-bella-rose-500 bg-bella-rose-50'
-                    : 'border-border/50 bg-white/80 hover:border-bella-rose-300'
-                }`}
-              >
-                <p className="font-medium">Mercado Pago</p>
-                <p className="text-xs text-muted-foreground">Confirmación automática</p>
-              </button>
-              <button
-                onClick={() => setPaymentMethod('transfer')}
-                className={`rounded-xl border p-4 text-center transition-colors ${
-                  paymentMethod === 'transfer'
-                    ? 'border-bella-rose-500 bg-bella-rose-50'
-                    : 'border-border/50 bg-white/80 hover:border-bella-rose-300'
-                }`}
-              >
-                <p className="font-medium">Transferencia</p>
-                <p className="text-xs text-muted-foreground">Confirmación manual</p>
-              </button>
-            </div>
+          <Button
+            onClick={goToPayment}
+            className="w-full bg-bella-rose-600 hover:bg-bella-rose-700 py-6"
+          >
+            Elegir método de pago
+          </Button>
+        </div>
+      )}
+
+      {/* STEP 5: Método de pago */}
+      {step === 'payment' && !loading && (
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <CreditCard className="h-5 w-5 text-bella-gold-500" />
+            ¿Cómo querés pagar la seña?
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Seña a abonar: <span className="font-semibold text-bella-rose-600">${totalDeposit.toLocaleString('es-AR')}</span>
+          </p>
+
+          <div className="grid grid-cols-1 gap-3">
+            <button
+              onClick={() => setPaymentMethod('mercadopago')}
+              className={`rounded-xl border p-5 text-left transition-colors ${
+                paymentMethod === 'mercadopago'
+                  ? 'border-bella-rose-500 bg-bella-rose-50 ring-1 ring-bella-rose-500'
+                  : 'border-border/50 bg-white/80 hover:border-bella-rose-300'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">Tarjeta / Mercado Pago</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Débito, crédito o saldo MP · Confirmación automática</p>
+                </div>
+                {paymentMethod === 'mercadopago' && (
+                  <CheckCircle2 className="h-5 w-5 text-bella-rose-500 shrink-0" />
+                )}
+              </div>
+            </button>
+
+            <button
+              onClick={() => setPaymentMethod('transfer')}
+              className={`rounded-xl border p-5 text-left transition-colors ${
+                paymentMethod === 'transfer'
+                  ? 'border-bella-rose-500 bg-bella-rose-50 ring-1 ring-bella-rose-500'
+                  : 'border-border/50 bg-white/80 hover:border-bella-rose-300'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">Transferencia bancaria</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Confirmación manual por el local</p>
+                </div>
+                {paymentMethod === 'transfer' && (
+                  <CheckCircle2 className="h-5 w-5 text-bella-rose-500 shrink-0" />
+                )}
+              </div>
+            </button>
           </div>
+
+          {/* Bank details preview — only when transfer selected */}
+          {paymentMethod === 'transfer' && (
+            <div className="rounded-xl border border-bella-gold-200 bg-bella-gold-50 p-5 space-y-2">
+              <p className="font-semibold text-sm text-bella-gold-800 flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                Datos para la transferencia
+              </p>
+              <p className="text-sm text-bella-gold-900">
+                Monto: <span className="font-bold">${totalDeposit.toLocaleString('es-AR')}</span>
+              </p>
+              {transferAlias ? (
+                <p className="text-sm text-bella-gold-900">
+                  Alias / CBU: <span className="font-bold font-mono">{transferAlias}</span>
+                </p>
+              ) : (
+                <p className="text-xs text-bella-gold-700">
+                  El local te enviará los datos de transferencia al confirmar la reserva.
+                </p>
+              )}
+              <p className="text-xs text-bella-gold-700 mt-1">
+                Enviá el comprobante por WhatsApp para confirmar tu turno.
+              </p>
+            </div>
+          )}
 
           <Button
             onClick={goToConfirm}
@@ -602,7 +660,7 @@ export function BookingWizard({ categories, depositPercentage = 50 }: { categori
         </div>
       )}
 
-      {/* STEP 5: Confirmación */}
+      {/* STEP 6: Resumen */}
       {step === 'confirm' && !loading && (
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Confirmá tu reserva</h2>
@@ -662,7 +720,7 @@ export function BookingWizard({ categories, depositPercentage = 50 }: { categori
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Pago</span>
-              <span>{paymentMethod === 'mercadopago' ? 'Mercado Pago' : 'Transferencia'}</span>
+              <span>{paymentMethod === 'mercadopago' ? 'Tarjeta / Mercado Pago' : 'Transferencia bancaria'}</span>
             </div>
           </div>
 
@@ -687,7 +745,7 @@ export function BookingWizard({ categories, depositPercentage = 50 }: { categori
         </div>
       )}
 
-      {/* STEP 6: Éxito */}
+      {/* STEP 7: Éxito */}
       {step === 'success' && bookingResult && (
         <div className="text-center space-y-6 py-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100">
